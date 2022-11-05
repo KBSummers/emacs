@@ -1,0 +1,274 @@
+import re
+import sys
+import valispace
+import keyring
+import requests
+from anytree import NodeMixin, RenderTree, AnyNode
+from anytree.exporter import JsonExporter
+from os.path import exists
+
+# Component ID's in Valispace
+mm1_id = 12405
+xl1_id = 12406
+payloads_id = 12407
+# set up a connection to the Valispace API
+mastenspace = valispace.API(url='https://valispace.masten.aero',
+              username='ksummers', password=keyring.get_password("valispace", "ksummers"))
+# This class will implement a tree structure to represent the Flight Software
+# specific components taken from Valispace with our own determination of grouping
+# outside of valispace representation
+class FswNode(NodeMixin):
+    def __init__(self, name, component=None, parent=None, properties=None, children=None):
+        self.name = name
+        if component:
+            self.component = component
+        if parent:
+            self.parent = parent
+        if children:
+            self.children = children
+        if properties:
+            self.properties = properties
+        else:
+            self.properties = {}
+    # This will allow us to only extract the properties that we want
+    def add_property(self, prop):
+        self.properties[prop["shortname"]] = prop
+    # this is probably not necessary, come back to this
+    def get_sibling_nodes(self):
+        siblings = {}
+        if parent:
+            for node in self.parent["children"]:
+                if(node["name"] != self.name):
+                    siblings[node["name"]] = node
+# sets up our error log
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+# Begin the process of collecting main nodes (mm1, xl1, payloads, subsystems)
+def initialize(mastenspace):
+    # create a file for std errors instead of command line output
+    e_f = open('log/error.log','w')
+    sys.stderr = e_f
+    #mm1 = call_component(mm1_id, mastenspace) #12405 = mm1 id
+    #xl1 = call_component(xl1_id, mastenspace)
+    #payloads = call_component(payloads_id, mastenspace)
+    #subsystems = {}
+    #for child in xl1["children"]:
+        #x = call_component(child, mastenspace)
+        #if x:
+            #subsystems[x["name"]] = x
+
+# Prints nodes under our grouping for visual purposes
+def print_tree(parent):
+    """
+Example output:
+Udo
+├── Marc
+│   └── Lian
+└── Dan
+    ├── Jet
+    ├── Jan
+    └── Joe
+    """
+    for pre, _, node in RenderTree(parent):
+        treestr = u"%s%s" % (pre, node.name)
+        print(treestr.ljust(8), node.length, node.width)
+
+# gets a component from valispace and accounts for HTTP request errors,
+# which are plentiful in our valispace domain
+def call_component(comp_id, mastenspace):
+    try:
+        req=mastenspace.get_component(id=comp_id)
+        #print(req)
+        if req is None:
+            req.raise_for_status()
+    except requests.HTTPError as exception:
+        eprint("Error accessing component with id: " + str(comp_id))
+        return
+    return req
+
+# similar to getting component and dealing with HTTP request errors, but
+# for valis
+def call_vali(vali_id, mastenspace):
+    try:
+        req=mastenspace.get_vali(id=vali_id)
+        if req is None:
+            req.raise_for_status()
+    except requests.HTTPError as exception:
+        eprint("Error accessing vali with id: " + str(vali_id))
+        return
+    return req
+
+def call_textvali(vali_id, mastenspace):
+    try:
+        #req=mastenspace.get_vali(id=vali_id)
+        req=mastenspace.get(url="textvalis/{}/".format(vali_id))
+        if req is None:
+            req.raise_for_status()
+    except requests.HTTPError as exception:
+        eprint(exception.args)
+        eprint("Error accessing textvali with id: " + str(vali_id))
+        return
+    return req
+
+# This will walk through a component and ask if you would like to mark it at important
+# It will then do the same for it properties. For each component and property marked
+# as important, qualities will be filtered out for things we don't need.
+def walk_component(comp_id, mastenspace):
+    tmp = call_component(comp_id,mastenspace)
+    c = None
+    if tmp:
+        filter_qualities(tmp)
+        c = FswNode(tmp["name"], component=tmp)
+        if c.component["valis"] or c.component["textvalis"]:
+            scrape_valis(c, mastenspace)
+        if c.component["children"]:
+            for child in c.component["children"]:
+                x = walk_component(child, mastenspace)
+                x.parent = c
+    del c.component["children"]
+    del c.component["valis"]
+    del c.component["textvalis"]
+    if not bool(c.properties):
+        del c.properties
+    return c
+
+def scrape_valis(node, mastenspace):
+    for vali in node.component["valis"]:
+        v_tmp = call_vali(vali, mastenspace)
+        if v_tmp:
+            filter_qualities(v_tmp)
+            node.add_property(v_tmp)
+    for vali in node.component["textvalis"]:
+        v_tmp = call_textvali(vali, mastenspace)
+        if v_tmp:
+            filter_qualities(v_tmp)
+            node.add_property(v_tmp)
+
+# This will take a vali or component represented as a dictionary, take
+# all of the random data we don't need using these keywords and removes them
+# from the dictionary
+def filter_qualities(v_c_dict):
+    # took out "name" and "children"
+    ext_words = [
+        "created_by", "description", "parent", "id", "project", "datevalis",
+        "current_alternative", "baselines", "alternatives", "specifications",
+        "created", "updated", "updated_by", "vpermission", "image_type", "image_file",
+        "image_link", "image_1024", "image_512", "image_256", "image_128",
+        "image_64", "contenttype", "matrices", "tags", "connections",
+        "verified", "is_alternative_container", "owner", "copy_in_progress",
+        "valis_used", "valis_marked_as_impacted", "is_part_of_a_matrix", "reference",
+        "content_", "used_by_valis", "type", "valis_marked_to_impact_this_vali",
+        "data_type", "function_view_plot_min", "function_view_plot_max", "parent_model",
+        "parent_object_id", "parent_content_type", "symbolic_representation", "modelists",
+        "component_type", "component_sub_type", "part_number", "connections_display_data",
+        "total_requirement_vms", "verified_requirement_vms", "uses_default_formula",
+        "is_part_of_linking_matrix", "valis_marked_to_impact_this_vali",
+        "is_part_of_linking_matrix", "latex_formula", "latex_formula_with_valinames",
+        "totalmargin_plus", "totalmargin_minus", "wc_minus", "wc_plus", "maximum", "minimum",
+        "margin_plus", "margin_minus"]
+
+    for word in ext_words:
+        if(word in v_c_dict):
+            del v_c_dict[word]
+    for key in v_c_dict:
+        if isinstance(v_c_dict[key], str):
+            v_c_dict[key] = parse_html_tags(v_c_dict[key])
+
+def parse_html_tags(text):
+    clean = re.compile('<.*?>')
+    text = re.sub(clean, '', text)
+    return text
+
+# Queries the user for  importance of property/ component, user answers
+# in typical Linux query format {Y/n]
+def query_yes_no(question, default="yes"):
+    """Ask a yes/no question via raw_input() and return their answer.
+
+    "question" is a string that is presented to the user.
+    "default" is the presumed answer if the user just hits <Enter>.
+        It must be "yes" (the default), "no" or None (meaning
+        an answer is required of the user).
+
+    The "answer" return value is one of "yes" or "no".
+    """
+    valid = {"yes":"yes",   "y":"yes",  "ye":"yes",
+             "no":"no",     "n":"no"}
+    if default == None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError("invalid default answer: '%s'" % default)
+
+    while 1:
+        sys.stdout.write(question + prompt)
+        choice = input().lower()
+        if default is not None and choice == '':
+            return default
+        elif choice in valid.keys():
+            return valid[choice]
+        else:
+            sys.stdout.write("Please respond with 'yes' or 'no' "\
+                             "(or 'y' or 'n').\n")
+
+# Uses the anytree json exporter to take our grouping and output to a json
+# tree structure
+def export_json(root_node, filename, indent_level=2, sort=False):
+    exporter = JsonExporter(indent=indent_level, sort_keys=sort)
+    f = open(filename, "w")
+    f.write(exporter.export(root_node))
+
+# beginning of use case development
+def star_tracker_use_case(mastenspace):
+    tel_pkt = FswNode("Standard Telemetry Packet")
+    sync_word = FswNode("Sync Word", component="0xEB90", parent=tel_pkt)
+    data_len = FswNode("Data Length", component="0x0001", parent=tel_pkt)
+    star_tracker = walk_component(12557, mastenspace)
+    star_tracker.parent = tel_pkt
+    #print(star_tracker)
+    #name = star_tracker["name"]
+    #st_node = FswNode(name, parent=tel_pkt)
+    export_json(tel_pkt, "json/star_tracker_no_nulls.json")
+
+def pcdhu_if_use_case(mastenspace):
+    tel_pkt = FswNode("PCDHU_Interface")
+    sync_word = FswNode("Sync Word", component="0xEB90", parent=tel_pkt)
+    data_len = FswNode("Data Length", component="0x0001", parent=tel_pkt)
+    pcdhu_if = walk_component(21513, mastenspace)
+    #for child in pcdhu_if["children"]:
+        #c = walk_component(child, mastenspace)
+        #c.parent = tel_pkt
+    pcdhu_if.parent = tel_pkt
+    export_json(tel_pkt, "json/pcdhu_if.json")
+def engine_prep_cmd(mastenspace):
+    epc = walk_component(20872, mastenspace)
+    export_json(epc, "json/engine_prep.json")
+# second use case, needs some work
+def propulsion_use_case(mastenspace):
+    fuel_tank_1 = walk_component(mm1_id, mastenspace)
+    engine_pressure_1 = FswNode("Engine Pressure Group 1")
+    #effective_pressure_1 = walk_component(, mastenspace)
+    export_json(root_node, "json/prop_use_case.json")
+    #fuel_tank_1 = walk_conmponent(12662, mastenspace)
+
+def generate_use_case(name, comp_id, mastenspace):
+    tel_pkt = FswNode(name)
+    sync_word = FswNode("Sync Word", component="0xEB90", parent=tel_pkt)
+    data_len = FswNode("Data Length", component="0x0001", parent=tel_pkt)
+    uc = walk_component(comp_id, mastenspace)
+    del sync_word.properties
+    del data_len.properties
+    del tel_pkt.properties
+    uc.parent = tel_pkt
+    export_json(tel_pkt, f"json/{name}.json")
+
+initialize(mastenspace)
+#propulsion_use_case(mastenspace)
+#star_tracker_use_case(mastenspace)
+#pcdhu_if_use_case(mastenspace)
+#engine_prep_cmd(mastenspace)
+
+generate_use_case("generic_commands", 20998, mastenspace)

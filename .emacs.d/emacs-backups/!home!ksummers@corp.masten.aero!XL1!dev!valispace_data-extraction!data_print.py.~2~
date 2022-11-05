@@ -1,0 +1,58 @@
+import valispace
+import keyring
+
+# component class structure for python
+# these will be put into a tree
+class Component:
+    def _init_(self, component):
+        self.id = component["id"]
+        self.name = component["name"]
+        self.description = component["description"]
+        self.parent = component["parent"]
+        self.tags = compoenent["tags"]
+        self.baselines = compoenent["baselines"]
+        self.is_alternative_container = compoenent["is_alternative_container"]
+        self.alternatives = compoenent["alternatives"]
+        self.children = compoenent["children"]
+        self.owner = compoenent["owner"]
+        self.current_alternative = compoenent["current_alternative"]
+        self.verified = compoenent["verified"]
+        self.component_type = compoenent["component_type"]
+        self.componenet_sub_type = compoenent["component_sub_type"]
+        self.connections = compoenent["connections"]
+        self.connections_display_data = compoenent["connections_display_data"]
+        self.contenttype = compoenent["contenttype"]
+        self.created = compoenent["created"]
+        self.updated = compoenent["updated"]
+        self.vpermission = compoenent["vpermisison"]
+
+
+
+
+mastenspace = valispace.API(url='https://valispace.masten.aero',
+                            username='ksummers', password=keyring.get_password
+                            ("valispace", "ksummers"))
+mm1_id = 12405#mastenspace.get_project(id=74)
+
+#print(mm1)
+#comp_list = mastenspace.get_component_list(project_id=74)
+
+
+def get_all_children(root_id):
+    f = open("data.out", "a")
+    comp_list = mastenspace.get("components/?parent="+str(root_id))
+    count = 1
+    for child in comp_list:
+        data = (mastenspace.get_component(id=child["parent"])["name"]
+                + "--->" + child["name"] + " count: " + str(count))
+        print(data)#+ "whole object")
+        f.write(data + "\n")
+        print(child)
+        count += 1
+        for subchild in child["children"]:
+            get_all_children(subchild)
+        #if child["children"] != []:
+            #get_all_children(child["id"])
+    f.close()
+
+get_all_children(mm1_id)

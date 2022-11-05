@@ -1,0 +1,144 @@
+# hey
+
+## now we've got headers
+
+### h3
+
+#### h4
+
+​	you can jump to this header from a [link](#Jumpable Link) (click ctrl-when you click)
+
+##### h5
+
+not a header here
+
+###### H6 
+
+> hey we 
+>
+> > have block code
+>
+> we keep it going
+
+
+
+
+
+## unordered list
+
+* list 1
+* list 2
+* list 4
+
+#### ordered lis
+
+1. here
+2. we 
+3. go
+
+- [ ] task
+
+- [x] task complete
+
+```c
+code block
+int main(){
+	int x;
+}
+```
+
+$$
+\mathbf{V}_1 \times \mathbf{V}_2 =  \begin{vmatrix}
+\mathbf{i} & \mathbf{j} & \mathbf{k} \\
+\frac{\partial X}{\partial u} &  \frac{\partial Y}{\partial u} & 0 \\
+\frac{\partial X}{\partial v} &  \frac{\partial Y}{\partial v} & 0 \\
+\end{vmatrix}
+$$
+
+^^^ This uses LaTex expressions.
+
+
+
+| First Header | Second Header |
+| ------------ | ------------- |
+| Content Cell | Content Cell  |
+| Content Cell | Content Cell  |
+
+| Left-Aligned  | Center Aligned  | Right Aligned |
+| :------------ | :-------------: | ------------: |
+| col 3 is      | some wordy text |         $1600 |
+| col 2 is      |    centered     |           $12 |
+| zebra stripes |    are neat     |            $1 |
+
+You can create footnotes like this[^fn1] and this[^fn2].
+
+[^fn1]: Here is the *text* of the first **footnote**.
+[^fn2]: 
+
+"***" or "---" will draw a horizonatal line
+
+***
+
+---
+
+This is [an example](http://example.com/ "Title") inline link.
+
+[This link](http://example.net/) has no title attribute.
+
+### Jumpable Link
+
+Hold down Cmd (on Windows: Ctrl) and click on [this link](#h4)  to jump to header `h4`. 
+
+
+
+[Google][]
+And then define the link:
+
+[Google]: http://google.com/
+
+Alt text
+
+![Text here](/home/ksummers@corp.masten.aero/Pictures/Screenshot from 2021-12-13 10-06-14.png) !
+
+
+
+![text here](/home/ksummers@corp.masten.aero/Pictures/hacker-pupper-dog.gif)
+
+
+
+
+
+**single asterisks** 
+
+*_single underscores_*
+
+\* This text is surrounded by literal asteriss\*
+
+
+
+***\*double asterisks\**** 
+
+**__double underscores__**
+
+Use the `printf()` function
+
+
+
+~ = super~script~
+
+x^2^2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

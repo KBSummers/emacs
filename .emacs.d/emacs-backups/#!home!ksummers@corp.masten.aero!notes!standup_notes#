@@ -1,0 +1,140 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~10.1.21~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+check merge request process
+
+continuous integration stuff, have a very short shell scrip that spawns radtest, get back the processID with $# or $ something most likeyl $$, sleep for 10 seconds, and then do a kill
+and then do a wait...... get back a return code in the wait that sas it was killed.
+Distinguish the fact that it was killed which is succesful... You do need a configuration file that might be a command line argument.....
+Let's change the amount of memory to test to /proc/meminfo or whatever is close that filename.
+Memtotal is in their which is unused memory.
+
+Use memtotal and allocate like 7/8ths of the memory in memtotal. Handle command line if we want which well need t odo eventually.
+
+For Logger, have that database, instead of format string and arguments, it'll have a message # and arguments. That way we dont have to send format messages we can just send the data.
+
+ we need a program to take xtce information out of Valispace (vspace may export as excel files, which is extra step we may be able to avoid) loook into database query instead. It wont have grouping from valipspace as it should. If we look at the document, it will have information on the
+
+ talks to eps about the power controls and telemetry. They command things and then telemetry goes the other way. I think we want to detec the current, if so we need the hardware, and it needs
+
+ ask "what do you want to be able to command in your subsystem" ultimately it comes down to what can be controlled at th ground flight software core to VCU fsw core will route commands to vcu but not everything
+
+ -i to specify interface
+
+ "What is there to control and what commands should be used to control them???" - Quesiton to all subsystems.
+ 5.4.47 - kernel version
+ ^ may move to 5.6 ~~ a while form now
+
+
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~10.11.21~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ Make sure we use configuration files, payload info and all that will not be in a config file so that we can use the actual code using the config file in another project, probably Prism-1A. Cross compiling in build with build root.
+
+.mk is a small peice of code that we'll add in to allow for the cross compilation in the build. all you do is tell it the url of where the repostiory is, give it a few hinst that youre using rust.
+ --> checkout fsw-gpc repository
+ 	--> directory called br2_external/packages/radTest   create config.in where we add the rad_test config.in.... radTest.mk file that uses wildcarding that you dont need to change.
+ 		--> then add the rad test into the directory
+ 		We do a buildroot build to get our exectuable and send it over to TFTP server.
+ 	Eventually we will have somehting that installs the root file system.
+Setting up the CI for rad test sow e can test in github.
+
+From valispace to code
+valispace --> SEDS --> XTCE --> code
+What were up to --> update.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~10.25.2021~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+COMMS first, need
+well simulate the eps-vcu
+simulate all the way through to YAMS 2.6 second round trip delay
+we need something low level that opens and closes all valves obvi
+engine valves
+we want to understand "how do you want to speak" given that there is this delay you cant just turn this valve right on and then turn it right off we want to do things in a right way.
+simple on/off
+we want to fire engines, we need all this stuff to happen first.
+gnc has prep options for firing
+unprep engines has
+
+What would they want do for debugging -->  going to need scan procedures.
+worry about pressures and failures.
+
+FUEKING - open valve, watch temp, if it gets hot close the valve. when it cools open it back up.
+
+
+need to include automatic shut offs.
+
+Simulated stuff through to VCU's and YAMS on the other end
+
+Minimal functionality at each layer required to connect the two layers
+Simulated payloads to YAMS and simulated VCUS to YAMS.
+
+then we will broadent hat path until we have everything.
+
+Continuos intgration for radtest
+- clap limiting how long radtest would run (time in seconds or number of loops)
+
+- disable the mtd testing --> test what you can test
+#{definte (test} or something like that
+complete parse_command_line that returns strcut and then you have something that actually executes the test based on that configuraiton
+
+in a test we can check to see if that set up correctly
+in a second test we can set up program with teh parsed arguments
+looks at pdchu for testing stuff
+cargo test -- --no-capture
+
+
+
+full regression test
+
+pdu is a vcu that has control of EPS and COmms
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~11.15.2021~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+runtime libraries from buildroot into the target libraries. If we are linking dynamically (which we are).
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~12.5.2021~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+software that loads pressurant into helium tanks
+probably:
+ we open the valve until it gets hot, open up and allow to cool down
+ detection of missed deadlines must be handled in side the softare. because this is not built in the Linux kernel but is typically manages by a full Linux OS.
+ there are a bunch of ways to do this. Check time, set timers, etc.
+ Insert an extra task (time gobbler ... whhile i < 10,000,0000) to contend with GNC software and CPU time. Forces performance to lower.
+
+ Task to slip in there,
+ Do CI stuff for radtest.
+ Valispace extraction.
+
+
+ Valispace stuff:
+ - help get end to end model
+ - Grab some json files and try to conver to XML
+ - Grouping of tlemetry items. Until we have something lik ea telemtry record.
+ - Ticket tracking functionality in Valispace?? Right now we'l probably use gitlab.
+ Need doing:
+ - Pull data, Define grouping
+ - Check for snags when converting.
+ - Startign to do things with a fake VCU, or sim VCU, we don't have our mock VCU setup
+
+ See if I can get th eXML. Start grouping things by hand, add a couple commands, focus on "THERMAL" get temp sensors data. Put in XTCE tags for the commands. See if Tim can feed that into anything tht generates usefl stuff (structures, code, whateber)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~12.10.2021~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ data relay - will do ip encapsulation and will live on the gateway.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[2022-02-01 Tue]
+
+- We need to review requirements
+- Design documents/ architecture all have the same structure, these need to be updated.
+- We need to update these with the reuirements in mind
+-
+
+RUST Project---
+- Theres things that neeed to be added to pcdhu-if but it needs to be cleaned up first,
+it has no logging currently,
+- different aspect of logging, --- logging of telemetry,
+- How do we genereate data structres that allow us to build telemetry and command packets, work with Thalia and Tim. I should make something that generates a packet,
+- You read the packet, its a stream of bytes, then you create classes that allow you to pull out things like header fields and stuff... Initially we will desing interfaces that abstract enough of the data structure so that we can shim in compression or dense packing, initially the data aligned  a certain way, but we will pack it in a certain way. You will be able to call something that will extract that. 32-bit value, maybe it will be aligned on the 7th bit ot something, you wont need to know that the extraction should take care of that. We want to send things back and forth between simvcu to cFS/Yamcs so that it create and dcode packets as they go back and forth. Sim VCU will receive *UDP packets* we retain the packet boundary, this is so we dont have retry traffic, we can layer reliability things on top of packets going back and forth. You dont' do retry packets on telemetry, you just wait for the next packet to come in.
+- Concern in identifying stale data, graphically and within packets. We want to be able to flag this. That will require extra bits, For GNC it has nav data and thermal data, this will all go into one subsytem, we'll put that in a telemetry packet. Lets say something happens to one of the components, we have a time we should get stuff, if it doesnt come in, we mark something as stale.
+- As opposed to temp sensor by sensor basis, we can mark a whole subset of sensors as stale.
+- Algorithms theres a peice of how you compress integers, 4 set points and resolution value, this is incomplete and wrong, pull all of that stuff out of the algorithms page.
+- Spacecraft Comamand & Design document --- put this in the software algorithms page, ----> This is why we want min adn max values in Valispace because these are actually used in the compression algortihms.

@@ -1,0 +1,13 @@
+INCLUDE_DIR=../include # maybe no ../ comeback to this
+SYNCLINK_H=$(INLCUDE_DIR)/synclink.h
+
+
+CFLAGS := -Wall -Wstrict-prototypes -fomit-frame-pointer -I $(INCLUDE_DIR)
+ifdef DEBUG
+CFLAGS += -g -O
+else
+CFLAGS += -O2
+endif
+
+test: synclink_test.c $(SYNCLINK_H)
+	gcc $(CFLAGS) -o $@ $< -lpthread

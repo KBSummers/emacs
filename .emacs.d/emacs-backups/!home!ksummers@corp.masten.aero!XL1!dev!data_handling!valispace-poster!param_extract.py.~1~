@@ -1,0 +1,21 @@
+import valispace
+import keyring
+mastenspace = valispace.API(url='https://valispace.masten.aero',
+              username='ksummers', password=keyring.get_password("valispace", "ksummers"))
+
+fsw = mastenspace.get_component(id=20427)
+
+def grab(cid):
+    comp = mastenspace.get_component(id=cid)
+    
+for sub in fsw['children']:
+    s = mastenspace.get_component(id=sub)
+    if 'Parameter' in s['name'] or 'parameter' in s['name']:
+        for child in s['children']:
+            param = mastenspace.get_component(id=child)
+            print(param['name'])
+    else:
+        for child in s['children']:
+            grab(child)
+
+grab(20427)

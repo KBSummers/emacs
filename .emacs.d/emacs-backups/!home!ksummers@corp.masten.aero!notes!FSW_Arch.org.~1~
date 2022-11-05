@@ -1,0 +1,4 @@
+- Add links to design documents
+- Add keep-alive daemon to fault tolerant design diagram
+^ Critical applicaitons in GPC0 in this design *is* the keep-alive daemon
+-

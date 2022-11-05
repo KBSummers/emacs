@@ -1,0 +1,12 @@
+import valispace
+mastenspace = valispace.API(url='https://valispace.masten.aero')
+fsw = mastenspace.get_component(id=20427)
+#print(fsw)
+
+def find_dt(compid):
+    x = mastenspace.get_component(id=compid)
+    print(x['name'])
+    for c in c['children']:
+        find_dt(c)
+
+find_dt(20427)

@@ -1,0 +1,140 @@
+#+title: LEE Notes
+** EPS standup needs
+-telemtery to say settings of the seitched
+-RLCL (basically like breakers) if you pull too much current they power off, but you can reset it and turn it back on
+- What are they suppliying us for current information, if an RLCL blows can we tell which current was being pulled through. We can pull again and see what blows?
+- Eliminate those and take out RLCL as a point of failure.
+- If one of them fails, we've lost the spacecraft.
+- If there is a transient failure inRLCL or device its powering such that RLCL gets tripped, we can turn it back on and see.
+- Is th eporbability that an RLCL gets a hard failure a lower priority than us having multiple soft failures, because if it gets powered off were screwed.
+- Tell me more about the RLCL's work
+- We dont know what we can control from FSW really, its conceivable that these things(RLCL) can be turned off like a breaker, is it like an on/off switch.
+1. What can we control?
+2. How do we control it?
+C&DH document is basically a guess.
+Solar panels
+- are there error conditions we need to handle?
+- FDIR -
+- Subsystem documents dection in confluence/ share to sharepoint link
+
+
+THEY ARE TALKING about a lot of actuators. we can onyl fit in a few dowzen and there are more sensors, we want a sense of how many (spcifically how many different TYPES of Sensors they ahve and what types of things were controlling) how do we control them. most of them i believe are on/off switches controlled through gpio, the sensors, are they booleans are do we need to do a "d-to-A" to sketch that out
+
+^^ Put all of this under the design documents, under tthe VCU section...
+Create a PDU section underneath all of this. Thats a good place to start tracking theose sensors. Figuer out about availability of EDU boards. *These are dev VCU's* THE PDU needs more memory and more storage, those will be on the PM.
+
+PDU EDU desing went well, found a way
+between the CCM and the SM:
+- to make them workable to the new design, may take some time.
+- design will need to begin
+-$13000 for a 100 amp relay, there pretty reliable but pretty expensive.
+f- Cant' rely on the CM because that would fall back on software.
+- do you we need that relay??
+- install before flight loopback that Jack will provide,  This shouldnt be a point of failure.
+- Do we add this to the risk matrix.
+
+Brian:
+- Buying network switches for the TMS570
+- Major parts of the network switch in the CM are not available.
+
+Mari:
+- for all the boards the need all docs BOM and MFG's to be able to spin the boards quickly
+
+
+-RLCL need to be reset. - This is a command
+** Chassis Update
+- Connectors will have a flex cable that connects to the TM boards
+- The goal is to maximize board space inside the enclosure
+- The board isn't effected by structural loads on the backside
+- Supporting Farside to do thermal analysis
+- Thermal concerns about the GPC in general, do we need to mount it on the radiator
+
+** CCM's
+- David is working on analysis of bandwidth on that.
+- In parallel, looking at FPGA or alternative chip
+- Can we get the bandwidth we need from an FPGA?
+^ Lead time of 16 weeks for an intel FPGA
+
+** Selector Module
+- need to order a lot of the parts Abhi had left arounds
+- multiplexers at nausea all over the place
+^ CCM takes precedence over this
+
+** Where Mari's at
+- HGA patterns have been given for EMA
+- talked to new vendor about PCBA's
+^ If e go with them, they can help with optical/circuit(current?) testing
+
+<2022-03-07 Mon>
+16k for dev kit, so that's gone
+** Mari
+- sorting out requirements for EMA.
+- updated EPS requirements
+
+** Brian - Board Design
+- keyCad and more keyCad
+
+** EPS Risks
+- Being able to reset the PDU , or not?
+- Open RID - battery balancing, if one gets disconnected, how do we reconnect
+
+
+
+** Chassis Update
+- Thermal analysis, only 5 watts going through each "thing" "meshlock"?
+- Took CCM boards Abhi designed, stacked two on top, a lot of heat was going through to the carrier board, which is good.
+
+Off the shelf PDU candidate, Bradford
+
+
+My Part:
+
+DAVID has concerns over use of FPGA, the PDU it too complex for it. You have to be very focused on what you do with FPGA, especially for software. We would need an FPGA software engineer, that stuff is not trivial.
+
+Bandwidth Analysis:
+
+Big push from comms for band analysis, because are we gonna have a PDU that can manage all that data
+
+- Open RID - battery balancing, if one gets disconnected, how do we reconnect - do we want this as a software commands
+
+
+Add requ's 56 to spacecraft command + data handling
+
+AskEva-
+Do we ened a state vector for IMU, is that an instant snapshot, or a time-based heuristic. Does she need values every so often?
+
+<2022-03-10 Thu>
+* PDU Reset-Switch Option
+
+Do we want to be able to power cycle the PDU.
+- If we do use VCU design with two CCM's, we can do a soft reset if a CCM fails. There is a watchdog timer.
+^This is not the same as power cycling the PDU.
+
+- Does this re-power the whole spacecraft since everything is connected? Depends on what state the LCL's are in...
+- We need a really big relay in order to completely power cycle the whole spacecraft, this would also require a separate controller.
+- Failure mentioned would be some type of stuck loop or something.
+
+- We have a watchdog timer, this just triggers a reset.
+- We would need to have a condition for when we power on, because we typically boot in front-porch mode.
+
+- Controller latch-up in the CCM would be caused most likely by radiation or a software failure. The watchdogs on the redundant CCM's is rad hard, so we do have a fair amount of protection.
+
+- We could perhaps reset the regulator for the CCM's through that controller?
+
+- How do we control the switch to that COD? An additional card for the PDU lies in between the power and the PDU.
+- WE need a separate rad-hard component to determine the power-reset for the CCM watchdog. The watchdog's themselves are rad-hard, so we can most likely use an additional set of these watchdogs to check for multiple watchdog triggers.
+
+* RLCL
+- Do we want to reset the
+- Were latching them, what state do they come up in.
+- When they're triggered they stay triggered.
+- they're like breakers. so if they get too much current, they get flipped off. We can choose what state they come up in.
+- So we'll have critical equipment set to come up powered on, and non critical equipment to come up powered off.
+- This would include PDU and Comms, but they actually dont have RLCLs, they have direct lines to the batteries.
+- If we dont reset the EPS board at the same time as the PDU,
+- If we dont reset the board, it needs to come up and power on stuff needed, but we didnt repower the PDU so it wont trigger the LCLS. power stuff off thats not needed.
+
+<2022-04-04 Mon>
+* Solar Panel CDR follow up next weeks
+^ Then PSR (pre shipment review)
+

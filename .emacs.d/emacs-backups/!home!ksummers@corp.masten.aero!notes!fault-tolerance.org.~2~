@@ -1,0 +1,40 @@
+#+title: Fault Tolerance and Reliability
+#+startup: showall indent
+#+options: toc:nil
+* Fault Tolerance
+
+<2022-01-10 Mon>
+** Front Parlor
+This has been kind of put on hold. This will have automatic detumbling, but is considered
+lower priority. At some point GNC will have a detumbling algorithm.
+- *Detumbling* consists of damping all angular velocity components of the spacecraft to zero.
+** Compute power and memory Needs
+Concerns about process times and memory resources. Processor times, is there a total compute
+power able to meet the GNC executive's needs? We have dual processors on each GPC, we run two copies on each.
+
+Question for GNC?
+- Are you guys close enough to something where you can get an idea of memory and cpu usage for GNC executive, for each 1 Hz, 10 Hz, and 100 Hz loops?
+ Answer: not that close, about to begin on work for this and FSW in general.
+
+Processor Capabilites on the GPC:
+*P2020 Processor*
+- At the Flight software core, we have cFs, we need to get numbers on memory size and performance in order to assess GPC capabilities.
+- As we begin to define telemetry definitions, we will build an idea of memory size.
+
+** Valispace Data
+- Once we begin to know what we need from telemetry, this will drive the ICD development. At the low level, we talk about values that go along with commands, this will mimic the data types defined in telemetry.
+- Translating data from a pdf (confluence) to valispace might require a little more manual work that can introduce many possibilities of errors.
+- For a given subsystem, see if we can present data in an easier-to-read way, perhaps a spreadsheet or array. Perhaps this will allow us to translate data easier into Valispace.
+- Hancock is a tool that would allow many pairs of eyes to see a file containing values (.csv, spreadsheet, array or whatever we want to get data into Valispace) before posting to single-source of truth. We might want something similar.
+- Whats easiest format for comms? want to use excel, manipulate to csv.
+- Pair whatever format we use to an easy readable format for us to observe before posting. Allows for easier external review from peers.
+- Lets find a tool similar to Hancock or Trac!
+^ link to an SVN file, this is what gets reviewed.
+
+** Trac
+- https://en.wikipedia.org/wiki/Trac
+
+
+** Comms
+- Paul needs to check back with Casey to see how close they are to obtaining the PDU, because we need to discuss more information about data coming in through here. We have a *synclink*, where to can open a putty term send clocked serial data for testing and emulation in the meantime, we can then get the radio up and running and take RF measurements.
+- lets write a script to continuously playback a file through this serial ports to begin emulation of radio network.

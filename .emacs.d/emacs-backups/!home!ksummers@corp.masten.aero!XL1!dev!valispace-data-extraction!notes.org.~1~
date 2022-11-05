@@ -1,0 +1,29 @@
+#+title: Valispace Data Extraction
+#+startup: showall indent
+#+options: toc:nil
+* Connecting to Valispace
+The following snippet will connect us to the Valispace database using my credentials
+(stored in keyring so as to inhibit exposure).
+#+begin_src python :python python3
+import valispace
+import keyring
+
+mm1_id = 12405
+xl1_id = 12406
+payloads_id = 12407
+
+mastenspace = valispace.API(url='https://valispace.masten.aero',
+username='ksummers', password=keyring.get_password("valispace", "ksummers"))
+
+mm1 = call_component(mm1_id, mastenspace) #12405 = mm1 id
+xl1 = call_component(xl1_id, mastenspace)
+payloads = call_component(payloads_id, mastenspace)
+#launch_vehicle =
+#ground_systems =
+#ait =
+subsystems = {}
+for child in mm1[xl1["children"]]:
+    x = call_component(child, mastenspace)
+    subsystems[x["name"]] = x
+
+#+end_src

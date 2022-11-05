@@ -1,0 +1,132 @@
+
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
+//use serde_json::Value;
+use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
+use std::path::Path;
+use std::fs;
+use std::{thread, time::Duration};
+use std::fmt;
+/*
+ * This crate is used for deserializing data from JSON format into structures
+ * We then implement Display for these structs, so when we instantiate them
+ * they can then get generated into source code with their data fields
+ * populated and appropriately named.
+ */
+
+// This was intended to skip deserializng values that don't exist, but
+// it needs more work
+/*
+use serde::{Serialize, Deserialize};
+fn null_to_default<'de, D, T>(d: D) -> Result<T, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Default + Deserialize<'de>,
+{
+    let opt = Option::deserialize(d)?;
+    let val = opt.unwrap_or_else(T::default);
+    Ok(val)
+}
+ */
+
+//~~~~~~~~~~~~~Command Structs~~~~~~~~~~~~~~~//
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct Command {
+    pub name: String,
+    pub component: Component,
+    pub children: Option<Vec<Children>>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct Children {
+    pub name: String,
+    pub component: Component,
+    //#[serde(deserialize_with = "null_to_default")]
+    pub properties: Option<Properties>,
+    pub children: Option<Vec<Children>>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct Component {
+    pub name: String,
+    #[serde(rename = "unique_name")]
+    pub unique_name: Option<String>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct Properties {
+    #[serde(rename = "Data_Type")]
+    pub data_type: Option<DataType>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct DataType {
+    pub path: String,
+    pub shortname: String,
+    pub text: String,
+    pub name: String,
+}
+
+//~~~~~~~~~~~~~Command Structs~~~~~~~~~~~~~~~//
+
+// impl fmt::Display for Command {
+//     fn fmt(&self, f: &mut fmt::Formatter)->fmt::Result{
+//         let mut has_params: bool = false;
+//         if(!self.children.is_none){
+//             has_params = true;
+//             let x = "pub enum {\n".to_string();
+//             for p in self.children:
+//                 write!(x, "", )
+//         }
+//         let s = "struct ".to_string();
+//         write!(s, "{} {{\n\tpub component: {},\n", self.name, self.component.name);
+//         if(!self.children.is_none){
+//             write!(s, "\tpub params: <Vec<Parameters>>\n", self.)
+//         }
+//         write!(s, )
+
+//         return write!(f, "{}", s)
+//     }
+// }
+
+fn main() {
+    //let path = "../../json/commands";
+    let mut i :u32 = 0;
+    for entry in fs::read_dir("../../json/commands").unwrap(){
+        i += 1;
+        println!("{}", i);
+        let entry = entry.unwrap();
+        let path = entry.path();
+        if path.is_dir(){
+            println!("{:?} is a dir", path);
+        }
+        else{
+            let s = read_from_file(path).expect("Failure of deserialization");
+            //serde_any::to_file("x.rs", &s).ok();
+            //println!("{:#?}", s.to_string());
+            println!("{:#?}", s);
+            //thread::sleep(Duration::from_millis(1000));
+        }
+    }
+    // let path = "../../json/commands/Engine_Prep.json";
+    // let path = "../../json/generic_commands.json";
+    // let s: Command = serde_json::from_str(path).expect("improper format of JSON file");
+    // let s = read_from_file(path).expect("hey");
+    // println!("{:#?}", s);
+}
+
+
+fn read_from_file<P: AsRef<Path>>(path: P) -> Result<Command, Box<dyn Error>>{
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+    let u = serde_json::from_reader(reader)?;
+    Ok(u)
+}

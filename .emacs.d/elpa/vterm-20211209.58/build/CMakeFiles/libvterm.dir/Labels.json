@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/ksummers@corp.masten.aero/.emacs.d/elpa/vterm-20211209.58/build/CMakeFiles/libvterm"
+		},
+		{
+			"file" : "/home/ksummers@corp.masten.aero/.emacs.d/elpa/vterm-20211209.58/build/CMakeFiles/libvterm.rule"
+		},
+		{
+			"file" : "/home/ksummers@corp.masten.aero/.emacs.d/elpa/vterm-20211209.58/build/CMakeFiles/libvterm-complete.rule"
+		},
+		{
+			"file" : "/home/ksummers@corp.masten.aero/.emacs.d/elpa/vterm-20211209.58/build/libvterm-prefix/src/libvterm-stamp/libvterm-install.rule"
+		},
+		{
+			"file" : "/home/ksummers@corp.masten.aero/.emacs.d/elpa/vterm-20211209.58/build/libvterm-prefix/src/libvterm-stamp/libvterm-mkdir.rule"
+		},
+		{
+			"file" : "/home/ksummers@corp.masten.aero/.emacs.d/elpa/vterm-20211209.58/build/libvterm-prefix/src/libvterm-stamp/libvterm-download.rule"
+		},
+		{
+			"file" : "/home/ksummers@corp.masten.aero/.emacs.d/elpa/vterm-20211209.58/build/libvterm-prefix/src/libvterm-stamp/libvterm-update.rule"
+		},
+		{
+			"file" : "/home/ksummers@corp.masten.aero/.emacs.d/elpa/vterm-20211209.58/build/libvterm-prefix/src/libvterm-stamp/libvterm-patch.rule"
+		},
+		{
+			"file" : "/home/ksummers@corp.masten.aero/.emacs.d/elpa/vterm-20211209.58/build/libvterm-prefix/src/libvterm-stamp/libvterm-configure.rule"
+		},
+		{
+			"file" : "/home/ksummers@corp.masten.aero/.emacs.d/elpa/vterm-20211209.58/build/libvterm-prefix/src/libvterm-stamp/libvterm-build.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"libvterm"
+		],
+		"name" : "libvterm"
+	}
+}

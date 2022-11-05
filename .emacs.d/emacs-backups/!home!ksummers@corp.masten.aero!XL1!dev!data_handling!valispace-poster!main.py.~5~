@@ -1,0 +1,1418 @@
+import valispace
+import keyring
+import requests
+import json
+import re
+import time
+from urllib.error import HTTPError
+mastenspace = valispace.API(url='https://valispace.masten.aero',
+              username='ksummers', password=keyring.get_password("valispace", "ksummers"))
+
+def post_hga_controls(mastenspace):
+    even = []
+    odd = []
+    arr = ['Axis 1 Command', 'Command to move axis 1 to a position',
+           'Axis 2 Command', 'Command to move axis 2 to a position',
+           'Resolver R1-1', 'Report Resolver R1-1 value - Optisys debug',
+           'Resolver R1-2', 'Report Resolver R1-2 value - Optisys debug',
+           'Resolver R2-1', 'Report Resolver R2-1 value - Optisys debug',
+           'Resolver R2-2', 'Report Resolver R2-2 value - Optisys debug',
+           'Axis 1 Position', 'Report Axis 1 calculated position',
+           'Axis 1 Fine Position', 'Report calculated fine position - Optisys debug',
+           'Axis 1 Course Position', 'Report calculated course position - Optisys debug',
+           'Axis 2 Position', 'Report Axis 2 calculated position',
+           'Axis 2 Fine Position', 'Report calculated fine position - Optisys debug',
+           'Axis 2 Course Position', 'Report calculated course position - Optisys debug',
+           'Axis 1 Position Feedback Constants', 'Axis 1 K in matlab - Optisys tuning constant',
+           'Axis 2 Position Feedback Constants', 'Axis 2 K in matlab - Optisys tuning constant',
+           'Axis 2 Velocity', 'Velocity limit - default 0.1degrees/s - Optisys tuning constant',
+           'Axis 2 Acceleration', 'Acceleration limit - default 0.1degrees/s2 - Optisys tuning constant',
+           'Axis 2 Steady Rate Error', 'Maximum allowed steady state error - Optisys tuning constant',
+           'Axis 2 Positive Soft Limit', 'Maximum allowed motion in the positive direction - Optisys tuning constant',
+           'Axis 2 Negative Soft Limit', 'Maximum allowed motion in the negative direction - Optisys tuning constant',
+           'Waveguide Position Command', 'Command the wavguide switch to state 0 or 1',
+           'Waveguide Position Feedback', 'Report the waveguide switch state',
+           'Prime Power Voltage', 'Report value',
+           'Prime Power Current', 'Report value',
+           'ACU Temperature', 'Report value',
+           'Motor 1 Current', 'Report value',
+           'Motor 2 Current', 'Report value',
+           'Waveguide Switch Current', 'Report value',
+           'Heater Region #1 Temperature', 'Report value',
+           'Heater Region #2 Temperature', 'Report value',
+           'Heater Region #3 Temperature', 'Report value',
+           'Heater Region #4 Temperature', 'Report value',
+           'Heater Region #5 Temperature', 'Report value',
+           'Heater Region #6 Temperature', 'Report value',
+           'Heater Region #7 Temperature', 'Report value',
+           'Heater Region #8 Temperature', 'Report value',
+           'Heater Region #9 Temperature', 'Report value',
+           'Heater Region #10 Temperature', 'Report value',
+           'Reset', '',
+           'Identification', 'Optisys SN and Software Rev number',
+           'ACU Sensor - Prime Power Voltage', 'Report value',
+           'ACU Sensor - Prime Power Current', 'Report value',
+           'ACU Sensor - Temperature', 'Report value',
+           'ACU Sensor - Motor Current', 'Report value',
+           'ACU Sensor - Switch Current', 'Report value',
+           'Temperature Thresholds', 'Set vector of temperature thresholds in nonvolatile memory',
+           'Axis 1 Servo Constants', 'Set axis 1 servo constants in nonvolatile memory',
+           'Axis 2 Servo Constants', 'Set axis 2 servo constants in nonvolatile memory',
+           'Redundant Circuit State', 'Report if primary state 0 or redundant state 1 is used',
+           'Redundant Circuit Change Command', 'Command to change ACU to a new state',
+           'Heater Region #1 State', 'Set heater #1 state to off, on, or automatic',
+           'Heater Region #2 State', 'Set heater #2 state to off, on, or automatic',
+           'Heater Region #3 State', 'Set heater #3 state to off, on, or automatic',
+           'Heater Region #4 State', 'Set heater #4 state to off, on, or automatic',
+           'Heater Region #5 State', 'Set heater #5 state to off, on, or automatic',
+           'Heater Region #6 State', 'Set heater #6 state to off, on, or automatic',
+           'Heater Region #7 State', 'Set heater #7 state to off, on, or automatic',
+           'Heater Region #8 State', 'Set heater #8 state to off, on, or automatic',
+           'Heater Region #9 State', 'Set heater #9 state to off, on, or automatic',
+           'Heater Region #10 State', 'Set heater #10 state to off, on, or automatic',
+           'Motor 1 State', 'Set motor 1 state to off or on',
+           'Motor 2 State', 'Set motor 2 state to off or on',
+           'Resolver R1-1 State', 'Set resolver R1-1 state to off or on',
+           'Resolver R1-2 State', 'Set resolver R1-2 state to off or on',
+           'Resolver R2-1 State', 'Set resolver R2-1 state to off or on',
+           'Resolver R2-2 State', 'Set resolver R2-2 state to off or on',
+           'Axis 1 Stowed Command', 'Set position for stowed configuration. May exceed soft limits',
+           'Axis 2 Stowed Command', 'Set position for stowed configuration. May exceed soft limits',
+           'Axis 1 Un-stowed Command', 'Remove antenna axis 1 from stowed configuration',
+           'Axis 2 Un-stowed Command', 'Remove antenna axis 2 from stowed configuration',
+           'Controller Status', 'Set controller to a wake or sleep state']
+    for i in range(0, len(arr)):
+        if i % 2:
+            even.append(arr[i])
+        else:
+            arr[i] = re.sub('\s', '', arr[i])
+            arr[i] = re.sub('-', '_', arr[i])
+            arr[i] = re.sub('#', '', arr[i])
+            odd.append(arr[i])
+    for x, y in zip(odd,even):
+        print(f"{x} -----> {y}")
+        d = """{
+            "shortname": "%s",
+            "text": "%s",
+            "parent": 21858
+        }""" % (x, y)
+        #print(d)
+        mastenspace.post_data(type='textvali', data=d)
+        time.sleep(4)
+
+def post_comms_normal_telem():
+    x = """
+        HGA_Azimuth
+        HGA_ControllerTemp_A
+        HGA_ControllerTemp_B
+        HGA_DeployState
+        HGA_Elevation
+        HGA_MotorTemp
+        HGA_SwitchState
+        SSPA_Fault_Current_A
+        SSPA_Fault_Current_B
+        SSPA_Fault_Temp1_A
+        SSPA_Fault_Temp1_B
+        SSPA_Fault_Temp2_A
+        SSPA_Fault_Temp2_B
+        SSPA_Fault_Voltage_A
+        SSPA_Fault_Voltage_B
+        TRX_CarrierLockDetect_A
+        TRX_CarrierLockDetect_B
+        TRX_Ebno_A
+        TRX_Ebno_B
+        TRX_RSSI_A
+        TRX_RSSI_B
+        TRX_SubcarrierLockDetect_A
+        TRX_SubcarrierLockDetect_B
+        TRX_Temp_A
+        TRX_Temp_B
+        TRX_TransponderCurrent_A
+        TRX_TransponderCurrent_B
+    """
+    # post list above as components under normal telemetry for comms
+    y = x.split()
+    for word in y:
+        d = {
+            "name": "%s" % word,
+            "parent": 21880,
+            "project": 74
+        }
+        print(d)
+        post = mastenspace.post("components/", d)
+        time.sleep(4)
+
+def comms_normal_telem_types():
+    #x = list(range(21896, 21907+1))
+    bools = [21896, 21897, 21902, 21903]
+    ebnos = [21898, 21899]
+    decibels = [21900, 21901]
+    temps = [21904, 21905]
+    currents = [21906, 21907]
+    #print(x)
+    post_txtvalis(bools, "DataType", "Boolean")
+    post_txtvalis(ebnos, "DataType", "Ebno")
+    post_txtvalis(decibels, "DataType", "Decibels")
+    post_txtvalis(temps, "DataType", "Temperature")
+    post_txtvalis(currents, "DataType", "Current")
+
+def comms_priority_telem_comps():
+    x = """
+    CarrierLockDetect
+    Ebno
+    Rsi
+    SubcarrierLockDetect
+    Temp
+    TransponderCurrent
+    """
+    x = x.split()
+    post_components(x, 21908)
+    print(x)
+
+def comms_pt_types():
+    post_txtvalis([21909, 21912], "DataType", "Boolean")
+    post_txtvalis([21910], "DataType", "Ebno(0...TBD)")
+    post_txtvalis([21911], "DataType", "Decibels")
+    post_txtvalis([21913], "DataType", "Temp")
+    post_txtvalis([21914], "DataType", "Current")
+
+def eps_dt_comps():
+    x = """
+RLclId
+SolarPanelId
+PowerId
+"""
+    x = x.split()
+    post_components(x, 21928)
+def eps_props():
+    post_txtvalis([21929], "DataType", "enum")
+    post_txtvalis([21929], "Enumerations", "R_LCL_1, R_LCL_2, R_LCL_3, R_LCL_4, ... TBD")
+    post_txtvalis([21930], "DataType", "enum")
+    post_txtvalis([21930], "Enumerations", "SOLAR_PANEL_1, SOLAR_PANEL_2, SOLAR_PANEL_3, SOLAR_PANEL_4")
+    post_txtvalis([21931], "DataType", "CdhSystemsID")
+
+
+def eps_commands():
+    x = """
+RESET_R_LCL
+POWER_ON
+POWER_OFF
+POWER_OFF_ALL
+"""
+    x = x.split()
+    post_components(x, 21932)
+
+def eps_nt():
+    x = """
+BattCurrent
+BattTemp1Hot
+BattTemp2Hot
+BattTemp1Cold
+BattTemp2Cold
+BattVoltage
+"""
+    x = x.split()
+    post_components(x, 21943)
+def eps_pt_types():
+    post_txtvalis([21945], "DataType", "Current")
+    post_txtvalis([21950], "DataType", "Voltage")
+    post_txtvalis(list(range(21946,21950)), "DataType", "Temperature")
+
+def solar_panel_comps():
+    sp = []
+    for x in range(1,7):
+        sp.append("Solar_Panel_%d" % x)
+    post_components(sp, 21943)
+    spt = ['SolarPanelCurrent', 'SolarPanelTemp', 'SolarPanelVoltage']
+    nt = mastenspace.get_component(id=21943)
+    for c in nt['children']:
+        ch = mastenspace.get_component(id=c)
+        if 'Solar' in ch['name']:
+            post_components(spt, ch['id'])
+def solar_panel_types():
+    for x in list(range(21951,21957)):
+        sp = mastenspace.get_component(id=x)
+        for c in sp['children']:
+            ch = mastenspace.get_component(id=c)
+            if 'Current' in ch['name']:
+                post_txtvalis([ch['id']], 'DataType', 'Current')
+            if 'Temp' in ch['name']:
+                post_txtvalis([ch['id']], 'DataType', 'Temp')
+            if 'Voltage' in ch['name']:
+                post_txtvalis([ch['id']], 'DataType', 'Voltage')
+
+def batt_c():
+    #batt = []
+    #for x in range(1,5):
+    #    batt.append("Battery_%d" % x)
+    #post_components(batt, 21943)
+    batt_cs = ['BattCurrent', 'BattTemp1Hot', 'BattTemp2Hot',
+               'BattTemp1Cold', 'BattTemp2Cold', 'BattVoltage']
+    nt = mastenspace.get_component(21943)
+    for c in nt['children']:
+        ch = mastenspace.get_component(id=c)
+        if 'Battery' in ch['name']:
+            post_components(batt_cs, ch['id'])
+    for cc in nt['children']:
+        ch = mastenspace.get_component(id=cc)
+        if 'Battery' in ch['name']:
+            for ccx in ch['children']:
+                chh = mastenspace.get_component(id=ccx)
+                if 'Current' in chh['name']:
+                    post_txtvalis([chh['id']], 'DataType', 'Current')
+                if 'Temp' in chh['name']:
+                    post_txtvalis([chh['id']], 'DataType', 'Temp')
+                if 'Voltage' in chh['name']:
+                    post_txtvalis([chh['id']], 'DataType', 'Voltage')
+
+
+def eps_pt():
+    #### SOLAR PANELS ####
+    sp = []
+    for x in range(1,7):
+        sp.append("Solar_Panel_%d" % x)
+    post_components(sp, 21944)
+    spt = ['SolarPanelCurrent', 'SolarPanelTemp', 'SolarPanelVoltage']
+    nt = mastenspace.get_component(id=21944)
+    for c in nt['children']:
+        ch = mastenspace.get_component(id=c)
+        if 'Solar' in ch['name']:
+            post_components(spt, ch['id'])
+    for cc in nt['children']:
+        ch = mastenspace.get_component(id=cc)
+        if 'Solar' in ch['name']:
+            for ccx in ch['children']:
+                cch = mastenspace.get_component(id=ccx)
+                if 'Current' in cch['name']:
+                    post_txtvalis([cch['id']], 'DataType', 'Current')
+                if 'Temp' in cch['name']:
+                    post_txtvalis([cch['id']], 'DataType', 'Temp')
+                if 'Voltage' in cch['name']:
+                    post_txtvalis([cch['id']], 'DataType', 'Voltage')
+    #### BATTERIES ####
+    batt = []
+    for x in range(1,5):
+        batt.append("Battery_%d" % x)
+    post_components(batt, 21944)
+    batt_cs = ['BattCurrent', 'BattTemp1Hot', 'BattTemp2Hot',
+               'BattTemp1Cold', 'BattTemp2Cold', 'BattVoltage']
+    nt = mastenspace.get_component(21944)
+    for c in nt['children']:
+        ch = mastenspace.get_component(id=c)
+        if 'Battery' in ch['name']:
+            post_components(batt_cs, ch['id'])
+    for cc in nt['children']:
+        ch = mastenspace.get_component(id=cc)
+        if 'Battery' in ch['name']:
+            for ccx in ch['children']:
+                chh = mastenspace.get_component(id=ccx)
+                if 'Current' in chh['name']:
+                    post_txtvalis([chh['id']], 'DataType', 'Current')
+                if 'Temp' in chh['name']:
+                    post_txtvalis([chh['id']], 'DataType', 'Temp')
+                if 'Voltage' in chh['name']:
+                    post_txtvalis([chh['id']], 'DataType', 'Voltage')
+
+def flare_altimeter(flare_id):
+    cmds = ['PowerOnOff', 'SetFrequency', 'SetThreshold', 'SetGain', 'SetMode',
+     'RequestMeasurement']
+    nt = ['MeasurementPacket', 'HousekeepingPacket']
+    parameters = ['Parameters']
+    fa = mastenspace.get_component(id=flare_id)
+    for c in fa['children']:
+        ch = mastenspace.get_component(id=c)
+        #if 'Commands' in ch['name']:
+            #post_components(cmds, c)
+        #if 'NormalTelemetry' in ch['name']:
+            #post_components(nt, c)
+    for c in fa['children']:
+        ch = mastenspace.get_component(id=c)
+        if 'Commands' in ch['name']:
+            for child in ch['children']:
+                post_components(parameters, child)
+
+def fa_params():
+    sf = ['Prefix', 'PacketHeader', 'FrequencyValue', 'Checksum']
+    st = ['Prefix', 'PacketHeader', 'ThresholdValue', 'Checksum']
+    sg = ['Prefix', 'PacketHeader', 'GainValue', 'Checksum']
+    smrm = ['Prefix', 'PacketHeader', 'Checksum']
+    mp = ['Prefix', 'PacketHeader', 'Roughness', 'Slope', 'Reflectivity',
+          'Range', 'Validity' 'Checksum']
+    hpp = """
+        Prefix
+        Packet Header
+        V3_3
+        V5
+        V2_5
+        V1_9
+        V1_4
+        Vref
+        IIn
+        HvBias
+        BaudRate
+        Reserved
+        PulseRepetitionFrequency
+        MeasurementThreshold
+        Sensitivity
+        Leds
+        FlareState
+        RxdCmd
+        PulseCount
+        RejectedCmd
+        Reserved"""
+    hp  = """
+        PcbTemp
+        ApdTemp
+        Checksum
+    """.split()
+    #post_components(smrm, 22080)
+    #post_components(sf, 22076)
+    #post_components(st, 22077)
+    #post_components(smrm, 22079)
+    #post_components(sg, 22078)
+    #post_components(hp, 22073)
+    #post_components(mp, 22072)
+
+def fa_properties(fa_cmd_id):
+    fa_cmd = mastenspace.get_component(id=fa_cmd_id)
+    for cmd in fa_cmd['children']:
+        c = mastenspace.get_component(id=cmd)
+        for param in c['children']:
+            ps = mastenspace.get_component(id=param)
+            #print(p['name']) --> Parameters
+            for pa in ps['children']:
+                p = mastenspace.get_component(id=pa)
+                if 'Prefix' in p['name']:
+                    post_txtvalis([p['id']], 'Prefix', 'OXAF')
+                    post_txtvalis([p['id']], 'DataType', 'u8')
+                elif 'PacketHeader' in p['name']:
+                    post_txtvalis([p['id']], 'Prefix', 'OX..')
+                    post_txtvalis([p['id']], 'DataType', 'u8')
+                elif 'Threshold' in p['name']:
+                    post_txtvalis([p['id']], 'DataType', 'u16')
+                    post_txtvalis([p['id']], 'UnitConversion', 'x/100*65535')
+                elif 'Checksum' in p['name']:
+                    post_txtvalis([p['id']], 'DataType', 'u16')
+                elif 'Frequency' in p['name']:
+                    post_txtvalis([p['id']], 'DataType', 'u8')
+                    post_txtvalis([p['id']], 'Values', '0x00: 5Hz, 0x01: 1Hz, 0x02 10Hz')
+                elif 'Gain' in p['name']:
+                    post_txtvalis([p['id']], 'DataType','u8')
+                    post_txtvalis([p['id']], 'UnitConversion', 'x/100*...')
+
+def housepkt():
+    hpkt = mastenspace.get_component(id=22073)
+    for ch in hpkt['children']:
+        c = mastenspace.get_component(id=ch)
+        name = c['name']
+        #print(c['name']) ---> V3_3...
+#         if 'Vref' in c['name']:
+#             post_txtvalis(c['id'], 'DataType', 'Voltage')
+#             post_txtvalis(c['id'], 'UnitConversion', 'Counts*3.3/4095')
+#         elif c['name'][0] == 'V':
+#             post_txtvalis(c['id'], 'DataType', 'Voltage')
+#             post_txtvalis(c['id'], 'UnitConversion', 'Counts*6.6/4095')
+#         elif 'HvB' in c['name']:
+#             post_txtvalis(c['id'], 'DataType', 'Voltage')
+#             post_txtvalis(c['id'], 'UnitConversion', 'Counts*0.238+3.5')
+#         elif 'Baud' in name:
+#             post_txtvalis(c['id'], 'UnitConversion', 'Counts')
+#         elif 'Pulse' in name:
+#             post_txtvalis(c['id'], 'DataType', 'Hz')
+#             post_txtvalis(c['id'], 'UnitConversion', 'Clock Freq / (Counts * 256)')
+#         elif 'Pulse' in name:
+#             post_txtvalis(c['id'], 'DataType', 'Hz')
+#             post_txtvalis(c['id'], 'UnitConversion', 'Clock Freq / (Counts * 256)')
+#         elif 'Measure' in name:
+#             post_txtvalis(c['id'], 'DataType', 'Percentage')
+#             post_txtvalis(c['id'], 'UnitConversion', 'Clock Freq / (100 * Counts / 65535)')
+#         elif 'Sensitivity' in name:
+#             post_txtvalis(c['id'], 'DataType', 'Percentage')
+#             post_txtvalis(c['id'], 'UnitConversion', 'Clock Freq / (100 * Counts / 255)')
+#         elif 'FlareState' in name:
+#             post_txtvalis(c['id'], 'States', '1 = IDLE, 2 = Laser, 3 = Simulated Measurements Active')
+#         elif 'RxdCmd' in name:
+#             post_txtvalis(c['id'], 'DataType', 'Counts')
+#         elif 'PulseCount' in name:
+#             post_txtvalis(c['id'], 'DataType', 'Counts')
+#         elif 'LaserTemp' in name:
+#             post_txtvalis(c['id'], 'DataType', 'Degrees Celcius')
+#             post_txtvalis(c['id'], 'UnitConversion', 'Counts / 100')
+#         elif 'LaserStatus' in name:
+#             post_txtvalis(c['id'], 'DataType','Bit 0: Laser Enabled, Bit 1: Laser Active, Bit 3: External trigger mode
+# Bit 6: External Interlock Status
+# Bit 7: Laser Over Temp
+# Bit 8: Control Box Over Temp
+# Bit 9: Laser Power Failure
+# Bit 10: Ready to Enable Laser
+# Bit 11: Ready to Fire Laser')
+        # if ('Pcb' in name) or  ('Apd' in name):
+        #     post_txtvalis(c['id'], 'DataType', 'Degrees Celcius')
+        #     post_txtvalis(c['id'], 'UnitConversion', 'Counts / 256')
+        if 'Checksum' in name:
+            post_txtvalis(c['id'], 'UnitConversion', 'Sum(0-10) % 256')
+def fsw_core():
+    params = """
+DEPLOY_DURATION_MOON_RANGER
+DEPLOY_DURATION_SAMPLR
+SAMPLING_INTERVAL_xxx
+SAMPLING_MUTIPLE_xxx
+""".split()
+    cmds = """
+SET_PARAMETER
+SHOW_PARAMETER
+CHANGE_MODE
+""".split()
+    nt = """
+ParamValue
+ParamId
+""".split()
+    post_components(params, 22136) # 22136 = FSWCOREPARAMS
+    post_components(cmds, 22137) # FSWCMDS
+    post_components(nt, 22138) #FSW NT
+    p = mastenspace.get_component(id=22136)
+    for c in p['children']:
+        ch = mastenspace.get_component(id=c)
+        if 'MUT' in ch['name']:
+            post_txtvalis(ch['id'], 'Units', 'Cardinal')
+            post_txtvalis(ch['id'], 'DataType', 'UnsingedInteger(0...1000)')
+        else:
+            post_txtvalis(ch['id'], 'Units', 'Time_3')
+            post_txtvalis(ch['id'], 'DataType', 'DURATION_MS(1...1200000)')
+    c = mastenspace.get_component(id=22137)
+    for c in c['children']:
+        ch = mastenspace.get_component(id=c)
+        post_components(['Parameters'], c)
+def gw_gpc():
+    dt = """
+MemorySize
+NetworkIf
+PacketCount
+Pid
+Tid
+UserHz
+    """.split()
+    cmds = """KILL
+NETWORK_IF_UP
+NETWORK_IF_DOWN
+NICE
+""".split()
+    nt = ['NetworkInformation', 'SystemMemoryInformation', 'SystemLoadInformation','PerprocessInformation', 'PerThreadInformation']
+    #post_components(dt, 22164)
+    #post_components(cmds, 22163)
+    #post_components(nt, 22165)
+    #print(nt)
+    #print(cmds)
+    nia = """
+NetworkIfUp
+PacketsRx
+PacketsTx
+BytesRx
+BytesTx
+ErrorsRx
+ErrorsTx
+DroppedPacketsRx
+DroppedPacketsTx
+OverrunsRx
+OverrunsTx
+FramingRx
+CarrierTx
+CollisionsTx
+""".split()
+    #post_components(nia, 22178)
+    ni = mastenspace.get_component(id=22178)
+    for child in ni['children']:
+        c = mastenspace.get_component(id=child)
+        if 'Network' in c['name']:
+            post_txtvalis(child, 'DataType', 'Boolean')
+        else:
+            post_txtvalis(child, 'DataType', "PacketCount")
+    smi = """
+MemTotal
+MemFree
+MemAvailable
+Buffers
+Cached
+""".split()
+    post_components(smi, 22179)
+    sm = mastenspace.get_component(id=22179)
+    for child in sm['children']:
+        post_txtvalis(child, 'DataType', 'MemorySize')
+    sli = """
+user
+nice
+system
+idle
+iowait
+irq
+softirq
+""".split()
+    post_components(sli, 22180)
+    sl = mastenspace.get_component(id=22180)
+    for child in sl['children']:
+        post_txtvalis(child, 'DataType', 'UserHz')
+    ppi = """
+Command
+ParentId
+PercentMemory
+ProcessId
+ResidentMemorySize
+SharedMemorySize
+ThreadId
+VirtualMemorySize
+""".split()
+    post_components(ppi, 22181)
+    pp = mastenspace.get_component(id=22181)
+    for child in pp['children']:
+        c = mastenspace.get_component(id=child)
+        name = c['name']
+        if 'Size' in name:
+            post_txtvalis(child, 'DataType', 'MemorySize')
+        elif 'Id' in name:
+            post_txtvalis(child, 'DataType', 'Pid')
+        elif 'Percent' in name:
+            post_txtvalis(child, 'DataType', 'Pct12')
+        elif 'Command' in name:
+            post_txtvalis(child, 'DataType', 'CommandName')
+        else:
+            post_txtvalis(child, 'DataType', 'Tid')
+    pti = """
+ProcessId
+ThreadId
+Priority
+Nice
+State
+PercentCpuTime
+TotalRunTime
+""".split()
+    post_components(pti, 22182)
+def nav_fil():
+    nvf = """
+        Attitude1
+        Attitude2
+        Attitude3
+        Attitude4
+        Attitude5
+        Attitude6
+        DThetaXA
+        DThetaYA
+        DThetaZA
+        DVelocityX
+        DVelocityY
+        DVelocityZ
+        FlareTimeTag
+        ImuMsgTime
+        LosRangeA
+        LosRangeB
+        LosRangeC
+        LoSVelocityA
+        LoSVelocityB
+        LoSVelocityC
+        NdlTimeTag
+        PositionX
+        PositionY
+        PositionZ
+        Range
+        RangeToPlane
+        TrnTimeTag
+        VelocityMagnitude
+        VelocityX
+        VelocityY
+        VelocityZ
+""". split()
+    #post_components(['VelocityY', 'VelocityZ'], 20952)
+    units = """
+        Coord
+        Coord
+        Coord
+        Coord
+        Coord
+        Coord
+        DDAngle
+        DDAngle
+        DDAngle
+        DDX
+        DDY
+        DDZ
+        Time_3
+        Time_3
+        Coord
+        Coord
+        Coord
+        Velocity
+        Velocity
+        Velocity
+        Time_3
+        Coord
+        Coord
+        Coord
+        Coord
+        Coord
+        Time_3
+        Velocity
+        Velocity
+        Velocity
+        Velocity
+""".split()
+
+    print(len(units))
+    print(len(nvf))
+    c = mastenspace.get_component(id=20952)
+    #post_components(nvf, 20952)
+    for i in range(22234, 22265):
+        x = i-22234
+        #print(x)
+        #print(units[x])
+        post_txtvalis(i, 'Units', units[x])
+
+def tt():
+    names = """AccelMeasurements
+AttitudeEstimate
+AttitudeRateMeasurements
+ControllerError
+ErrorStatus
+GNCMode
+GuidanceError
+NavError
+PositionEstimate
+RCSThrusterTime
+SensorStatus
+Time
+VelocityEstimate
+
+    """.split()
+    #post_components(names, 22266)
+    dts = """
+3xdouble
+4xdouble
+3xdouble
+u8
+u16
+u16
+u8
+u8
+3xdouble
+3xu16
+u16
+double
+3xdouble
+""".split()
+
+    names= """
+AccelMeasurements
+AttitudeEstimate
+AttitudeRateMeasurements
+ControllerError
+EngineCycleCount
+ErrorStatus
+EstimatedMass
+GNCMode
+GuidanceError
+NavError
+PositionEstimate
+SensorStatus
+Time
+VelocityEstimate
+""".split()
+    #post_components(names, 22267)
+    dts = """
+3xdouble
+4xdouble
+3xdouble
+u8
+6xu16
+u16
+double
+u16
+u8
+u8
+3xdouble
+u16
+double
+3xdouble
+""".split()
+    for i in range(22283, 22297):
+        x = i-22283
+        post_txtvalis(i, 'DataType' ,dts[x])
+
+
+def post_components(comp_list, parent):
+    for comp in comp_list:
+        d = {
+            "name": "%s" % comp,
+            "parent": "%d" % parent,
+            "project": 74
+        }
+        post = mastenspace.post("components/", d)
+        time.sleep(4)
+
+def post_txtvalis(ids, name, text):
+    d = """{
+        "shortname": "%s",
+        "text": "%s",
+        "parent": %d
+    }""" % (name, text, ids)
+    #print(d)
+    mastenspace.post_data(type='textvali', data=d)
+    time.sleep(4)
+def build_subsystem(sub_name, parent):
+    x = [sub_name]
+    post_components(x, parent)
+    key = None
+    fsw = mastenspace.get_component(id=parent)
+    for child in fsw['children']:
+        c = mastenspace.get_component(id=child)
+        if c['name'] == sub_name:
+            key = c['id']
+            break
+    if key:
+        stuff = ['Commands', 'DataTypes', 'NormalTelemetry', 'PriorityTelemetry']
+        post_components(stuff, key)
+
+def fil_d():
+    names = """
+dXBiasesUpdate
+dXPVAStateUpdate
+dXQuatAttitudeUpdate
+PoseteriorBiasCovDiagonal
+PosteriorStateCovDiagonal
+PriorBiasCovDiagonal
+PriorBiases
+PriorPVAState
+PriorQuatAttitude
+PriorStateCovDiagonal
+Time
+""".split()
+    #post_components(names, 22269)
+    dts = """
+16xfloat
+9xdouble
+4xdouble
+16x32
+9xfloat
+9xfloat
+16xfloat
+9xdouble
+4xdouble
+9xfloat
+Double
+""".split()
+    for i in range(22297, 22308):
+        x = i-22297
+        #post_txtvalis(i, 'DataType', dts[x])
+def ibr():
+    names="""
+Address
+AeMuxTag
+AnalogData
+AngRateX
+AngRateY
+AngRateZ
+AverageTemp
+BitData
+Checksum
+Control
+DThetaXA
+DThetaYA
+DThetaZA
+DVelocityX
+DVelocityY
+DVelocityZ
+GyruMuxTag
+ImpStatus
+LinAccelX
+LinAccelY
+LinAccelZ
+Spare
+UGyroMuxData
+VGyroMuxData
+WGyroMuxData
+""".split()
+    units="""
+ordinal
+x
+x
+rad/sec
+rad/sec
+rad/sec
+x
+x
+x
+ordinal
+rad
+rad
+rad
+ft/sec
+ft/sec
+ft/sec
+x
+x
+ft/sec^2
+ft/sec^2
+ft/sec^2
+x
+x
+x
+x
+""".split()
+    print(len(names))
+    print(len(units))
+    #post_components(names, 22315)
+    for i in range(22316, 22341):
+        x = i-22316
+        if units[x] != 'x':
+            post_txtvalis(i, 'Units', units[x])
+
+def ndl_c():
+    #cmds = ['PowerOnOff', 'TimeSync', 'ModeTransition']
+    #post_components(cmds, 22351)
+    # c = mastenspace.get_component(id=22351)
+    # for child in c['children']:
+    #     ch = mastenspace.get_component(id=child)
+    #     post_components(['Parameters'], ch['id'])
+    tsp = """
+    CommandID
+CommandOpCode
+CRC
+""".split()
+    mts = """
+   CommandCounter
+CommandID
+CommandOpCode
+CRC
+Reserved
+""".split()
+    #post_components(tsp, 22359)
+    #post_components(mts, 22360)
+    dtm = """
+u16
+u8
+u8
+u16
+u16
+""".split()
+
+#     nt = """
+# CCSDS Info
+# CCSDS P-Field
+# CCSDS Packet Length
+# Chan A CW Freq Mag
+# Chan A Dec FMCW Freq
+# Chan A Dec FMCW Freq Mag
+# Chan A Inc FMCW Freq
+# Chan A Inc FMCW Freq Mag
+# Chan A Meas Freq CW
+# Chan B CW Freq Mag
+# Chan B Dec FMCW Freq
+# Chan B Dec FMCW Freq Mag
+# Chan B Inc FMCW Freq
+# Chan B Inc FMCW Freq Mag
+# Chan B Meas Freq CW
+# Chan C CW Freq Mag
+# Chan C Dec FMCW Freq
+# Chan C Dec FMCW Freq Mag
+# Chan C Inc FMCW Freq
+# Chan C Inc FMCW Freq Mag
+# ChanCMeasFreqCW
+# Checksum
+# CmdCounter
+# CmdRejectCounter
+# FirmwareVersion
+# LoSRange A
+# LoSRange B
+# LoSRange C
+# LoSVelocity A
+# LoSVelocity B
+# LoSVelocity C
+#     nt = """
+# Mode_NDLSN
+# PPSTicks
+# RangetoPlane
+# Reserved
+# SoftwareVersion
+# StatusFlags
+# Sync
+# T-Field
+    nt = """
+T-Field_ms
+VelocityMagnitude
+VelocityX
+VelocityY
+VelocityZ""".replace(" ", "").replace("-","_").split()
+    units="""
+
+
+
+DN
+MHz
+DN
+MHz
+DN
+MHz
+DN
+MHz
+DN
+MHz
+DN
+MHz
+DN
+MHz
+DN
+MHz
+DN
+MHz
+
+
+
+
+m
+m
+m
+m/s
+m/s
+m/s
+
+
+m/s
+
+
+
+
+s
+ms
+m/s
+m/s
+m/s
+m/s"""
+    #post_components(nt, 22353)
+    units = re.findall(r'\S+|\n',units)
+    index = 0
+    for i in units:
+        print(index)
+        if index > 0:
+            print("yes")
+            if '\n' in units[index] and '\n' not in units[index-1]:
+                print("yes")
+                del units[index]
+        index += 1
+    del units[0]
+    for i in range(22369, 22413):
+        x = i - 22369
+        if '\n' not in units[x]:
+            post_txtvalis(i, 'Units', units[x])
+        #post_txtvalis(i, 'DataType', dtm[x])
+def quick():
+    data = "0-2: Packet Source, 3: CCSDS Type, 4: Secondary Header Present, 5-15: Process ID, 16-17: 0x3, 18-31: Packet Sequence Count"
+    mode="0-3: Current and Target Modes, 4-15: Serial Number"
+    sync="0xAAAA AAAA"
+    post_txtvalis(22369, 'Bits', data)
+    post_txtvalis(22400, 'Bits', mode)
+    post_txtvalis(22406, 'Bytes', sync)
+#quick()
+#ndl_c()
+#build_subsystem('Payload', 20427)
+def paydt():
+    names="""
+ACTUATOR_ID
+CURRENT
+LINE_ID
+PAYLOAD_ID
+POWER_STATUS
+""".split()
+    units = """
+ordinal
+amps
+ordinal
+ordinal
+logical
+""".split()
+    defs = """unsigned integer (0...2)
+CURRENT
+unsigned integer (0...2)
+unsigned integer (0...7)<ACTUATOR_ID (TBD: will increase if more payloads are added)
+boolean
+""".splitlines()
+    for i in range(22418, 22423):
+        x = i - 22418
+        post_txtvalis(i, 'Units', units[x])
+        post_txtvalis(i, 'Definition', defs[x])
+    #post_components(names, 22415)
+#paydt()
+def paycmd():
+    comps= """DATA_OFF <LINE_ID>
+DATA_ON <LINE_ID>
+DEPLOY_PAYLOAD_ARM <PAYLOAD_UD> <ACTUATOR_ID>
+DEPLOY_PAYLOAD_EXECUTE <PAYLOAD_UD> <ACTUATOR_ID>
+POWER_OFF <PAYLOAD_ID>
+POWER_ON <PAYLOAD_ID>
+RECORDING_DISABLE <LINE_ID>
+RECORDING_ENABLE <PAYLOAD_ID> <LINE_ID>""".splitlines()
+    cmds = [i.split()[0] for i in comps]
+    #cm = list(dict.fromkeys(cmds))
+    # for i in comps:
+    #     i = i.split()
+    #     del i[0]
+    #     i = ' '.join(i)
+    params = [i.split()[1:] for i in comps]
+    ps = []
+    for list in params:
+        nl = []
+        for p in list:
+            p = re.sub('[<>]', '', p)
+            nl.append(p)
+        ps.append(nl)
+    # for list in params:
+    #     for p in list:
+    #         p = re.sub('[<>]', '', p)
+    #         print(p)
+    print(comps)
+    print(len(ps))
+    #print(cm)
+    post_components(cmds, 22414)
+
+def st():
+    cmd = ['PowerOnOff', 'SetOperationalMode', 'SetTelemetryMode', 'Reboot', 'RequestStateOfHealth', 'SetCycleTime', 'PlaybackSequence']
+    som = """CommandID
+CRC
+DataLength
+Mode
+Subsystem
+SyncWord""".split()
+    stm = """CommandID
+CRC
+DataLength
+Subsystem
+SyncWord
+TLMMode""".split()
+    rbt = """Command ID
+CRC
+Data Length
+Subsystem
+Sync Word""".splitlines()
+    rbt = [x.replace(' ', '') for x in rbt]
+    rsoh = """Command ID
+CRC
+Data Length
+Subsystem
+Sync Word""".splitlines()
+    rsoh = [x.replace(' ', '') for x in rsoh]
+    sct="""Command ID
+CRC
+Cycle Time
+Data Length
+Subsystem
+Sync Word""".splitlines()
+    sct = [x.replace(' ', '') for x in sct]
+    ps = """Command ID
+CRC
+Data Length
+FileName
+Reserved
+Subsystem
+Sync Word""".splitlines()
+    ps = [x.replace(' ', '') for x in ps]
+    # post_components(som, 22439)
+    # post_components(stm, 22440)
+    # post_components(rbt, 22441)
+    # post_components(rsoh, 22442)
+    # post_components(sct, 22443)
+    # post_components(ps, 22444)
+    #post_components(cmd, 22434)
+    cmds = mastenspace.get_component(id=22434)
+    for child in cmds['children']:
+        chx = mastenspace.get_component(id=child)
+        for c in chx['children']:
+            ch = mastenspace.get_component(id=c)
+            if 'CommandID' in ch['name'] or 'Subsystem' in ch['name']:
+                post_txtvalis(ch['id'], 'DataType', 'u8')
+            elif 'CRC' in ch['name'] or 'DataLength' in ch['name']:
+                post_txtvalis(ch['id'], 'DataType', 'u16')
+            elif 'SyncWord' in ch['name']:
+                post_txtvalis(ch['id'], 'DataType', 'u16')
+            elif 'Mode' in ch['name']:
+                post_txtvalis(ch['id'], 'DataType', 'u8')
+#st()
+def stnt():
+    st="""Sync Byte
+Data Len
+Packet ID
+SubSystem
+Latency
+Qsi_i
+Qsi_j
+Qsi_k
+Qsi_r
+avg_res_deg
+Cmd Valid
+Cmd Invalid
+Last Cmd
+STmode
+isuccess
+numstarIDs
+nProcessedImages
+CPUTemp
+SensorTemp
+CRC""".splitlines()
+    st = [x.replace(' ', '') for x in st]
+    st.sort()
+    sohp="""Sync Byte
+Data Len
+Packet ID
+SubSystem
+Version
+Last Cmd Error
+Revision
+Reboots
+Wdog TO
+Cmd Errors
+Skipped Cycles
+Cycle Time
+Focal Length
+Serial Num
+CRC""".splitlines()
+    sohp = [x.replace(' ', '') for x in sohp]
+    sohp.sort()
+    print(sohp)
+    #post_components(st, 22480)
+    #post_components(sohp, 22481)
+    print(st)
+    uc1 = """Counts/2
+Counts
+Counts
+Counts
+
+
+
+
+Counts
+Counts
+Counts
+
+Counts/(2^31-1)
+Counts/(2^31-1)
+Counts/(2^31-1)
+Counts/(2^31-1)
+40-Counts
+
+
+
+"""
+    uc1 = re.findall(r'\S+|\n',uc1)
+    index = 0
+    for i in uc1:
+        print(index)
+        if index > 0:
+            print("yes")
+            if '\n' in uc1[index] and '\n' not in uc1[index-1]:
+                print("yes")
+                del uc1[index]
+        index += 1
+    for i in range(22490, 22494):
+        post_txtvalis(i, 'UnitConversion', 'Counts / (2^31-1)')
+    # print(uc1)
+    # print(len(uc1))
+    # print("here")
+    # for i in range(22498, 22497):
+    #     print("here")
+    #     x = i - 22498
+    #     print(x)
+    #     if '\n' not in uc1[x]:
+    #         post_txtvalis(i, 'UnitConversion', uc1[x])
+
+#stnt()
+def remove_spaces(array):
+    array = array.splitlines()
+    return [x.replace(' ', '') for x in array]
+def sun_sensor():
+    # for i in range(21496, 21505):
+    #     if i != 21498:
+            #post_components(['Parameters'], i)
+    initp = """CRC
+Destination
+Initialization Address
+Message Control Field
+Source"""
+    initp = remove_spaces(initp)
+    acp = """CRC
+Destination
+Message Control Field
+Source
+Telemetry Channel"""
+    acp = remove_spaces(acp)
+    peekp = """CRC
+Destination
+Message Control Field
+Number of Bytes to Read
+Source
+Target Location"""
+    peekp = remove_spaces(peekp)
+    pingp = """CRC
+Data
+Destination
+Message Control Field
+Source"""
+    pingp = remove_spaces(pingp)
+    tcp = """CRC
+Destination
+Message Control Field
+Source
+Telemetry Address"""
+    tcp = remove_spaces(tcp)
+    mccp = """CRC
+Destination
+End Address
+Message Control Field
+Source
+Start Address"""
+    mccp = remove_spaces(mccp)
+    # post_components(initp, 22518)
+    # post_components(acp, 22519)
+    # post_components(acp, 22520)
+    # post_components(peekp, 22521)
+    # post_components(pingp, 22522)
+    # post_components(tcp, 22523)
+    #post_components(mccp, 22561)
+    # u8s = ['Destination', 'MessageControl', 'Source', 'Number', 'Data']
+    # u32s = ['Channel', 'Initialization', 'Target', 'End', 'Start']
+    # for i in range(22562, 22568):
+    #     p = mastenspace.get_component(id=i)
+    #     if 'CRC' in p['name'] or 'TelemetryAddress' in p['name']:
+    #         post_txtvalis(i, 'DataType', 'u16')
+    #     elif any(x in p['name'] for x in u8s):
+    #         post_txtvalis(i, 'DataType', 'u8')
+    #     elif any(x in p['name'] for x in u32s):
+    #         post_txtvalis(i, 'DataType', 'u32')
+    go_code="""Destination
+Source
+Control Field
+Go Code
+CRC"""
+    esp="""Control Field
+CRC
+Destination
+Max Exposure
+Min Exposure
+Source
+Target Brightness"""
+    bsp = """Destination
+Source
+Control Field
+Min Brightness
+Max Brightness
+Integrated Brightness
+ExposureLength
+CRC"""
+    tp = """Control Field
+CRC
+Destination
+Source
+Temperature"""
+    svp = """Control Field
+CRC
+Destination
+Fit Quality
+Geometry Quality
+Source
+X Vector
+Y Vector
+Z Vector"""
+    icp="""Control Field
+CRC
+Destination
+Iterations
+Source"""
+    trp = """Control Field
+CRC
+Destination
+Processing Time
+Source"""
+    dp = """Control Field
+CRC
+Destination
+Diag1
+Diag2
+Diag3
+Source"""
+    print(go_code)
+    esp = remove_spaces(esp)
+    bsp = remove_spaces(bsp)
+    go_code = remove_spaces(go_code)
+    go_code.sort()
+    tp = remove_spaces(tp)
+    svp = remove_spaces(svp)
+    icp = remove_spaces(icp)
+    trp = remove_spaces(trp)
+    dp = remove_spaces(dp)
+    #post_components(bsp, 21507)
+    #post_components(esp, 21506)
+    # post_components(go_code, 22568)
+    # post_components(tp, 21508)
+    # post_components(svp, 21509)
+    # post_components(icp, 21510)
+    # post_components(trp, 21511)
+    # post_components(dp, 21512)
+#sun_sensor()
+
+def sun_sensor_2():
+    u8s = [22597, 22598, 22606]
+    u16s = [22583, 22573, 22572, 22600, 22601, 22602, 22616, 22617, 22618]
+    u32s = [22611, 22574, 22575]
+    # for x in u8s:
+    #     post_txtvalis(x, 'DataType', 'u8')
+    # for x in u16s:
+    #     post_txtvalis(x, 'DataType', 'u16')
+    # for x in [22580,22581]:
+    #     post_txtvalis(x, 'DataType', 'u32')
+    counts = [22572, 22573, 22574, 22575]
+    # for x in counts:
+    #     post_txtvalis(x, 'UnitConversion', 'Counts')
+    crcs = [22576, 22614, 22578, 22584, 22604, 22595, 22590, 22609]
+    for c in crcs:
+        post_txtvalis(c, 'Definition', 'Polynomial: 0x1021 (CCITT 16 Bit) Little Endian')
+#sun_sensor_2()
+# build_subsystem('Structures', 20427)
+# build_subsystem('Propulsion', 20427)
+build_subsystem('TRN', 22056)
+#build_subsystem('StarTracker', 22056)
+#paycmd()
+#build_subsystem('NDL', 22056)
+#def build_subsystem(sub_name, parent):
+#def post_components(comp_list, parent):
+#def post_txtvalis(ids, name, text):
+
+
+#fil_d()
+#ibr()
+#tt()
+#nav_fil()
+#gw_gpc()
+#build_subsystem('Harware_and_Kernel', 22161)
+#fsw_core()
+#housepkt()
+#fa_properties(22062)
+#fa_properties(22064)
+#build_subsystem('FLARE_Altimeter',22056)
+#flare_altimeter(22061)
+#fa_params()
+#eps_pt()
+#batt_c()
+#solar_panel_comps()
+#solar_panel_types()
+#eps_pt_types()
+#eps_nt()
+#eps_commands()
+#eps_props()
+#comms_pt_types()
+#comms_priority_telem_comps()
+#comms_normal_telem_types()
+#post_comms_normal_telem()
+#post_hga_controls(mastenspace)
+# def post_cp(parent, comp, pnames ,props):
+#     c = []
+#     c.append(comp)
+#     post_components(c, parent)
+#     p = mastenspace.get_components(id=parent)
+#     for child in p['children']:
+#         ch = mastenspace.get_components(id=child)
+#         if ch['name'] == comp:
+#             for p in props:

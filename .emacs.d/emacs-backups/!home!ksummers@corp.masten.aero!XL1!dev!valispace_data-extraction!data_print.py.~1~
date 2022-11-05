@@ -1,0 +1,17 @@
+import valispace
+
+#mastenspace = valispace.API(url='https://valispace.masten.aero')
+mastenspace = valispace.API(url='https://valispace.masten.aero', username='ksummers', password='KStoTheMoonMSSoegt11!!')
+mm1 = mastenspace.get_project(id=74)
+#print(mm1)
+#comp_list = mastenspace.get_component_list(project_id=74)
+def get_child(parent_id):
+    comp_list = mastenspace.get("components/?parent="+str(parent_id))
+    for child in comp_list:
+        print(mastenspace.get_component(id=child["parent"])["name"] + "--->" + child["name"]+ "whole object")
+        print("\n\n\n")
+        print(child)
+        if child["children"] != []:
+            get_child(child["id"])
+get_child(12406)
+

@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+
+"""
+"""
+class Solution:
+    def getHint(self, secret, guess):
+        """
+        :type secret: str
+        :type guess: str
+        :rtype: str
+        """

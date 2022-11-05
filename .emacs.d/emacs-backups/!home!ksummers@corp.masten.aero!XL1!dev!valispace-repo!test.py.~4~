@@ -1,0 +1,23 @@
+from anytree import NodeMixin, RenderTree
+
+class node(NodeMixin):
+        def __init__(self, name, parent=None, children=None):
+            self.name = name
+            if children:
+                self.children = children
+            if parent:
+                self.parent = parent
+class use_case:
+    root = node('kyle')
+    t = node('tim')
+    j = node('jesse', parent=t)
+    t.parent = root
+    def _init(self):
+    def prints(self):
+        for pre, _, node in RenderTree(self.root):
+            treestr = u"%s%s" % (pre, node.name)
+            print(treestr.ljust(8))
+x = use_case()
+x.prints()
+#main(k)
+#print(k.children[1].name)

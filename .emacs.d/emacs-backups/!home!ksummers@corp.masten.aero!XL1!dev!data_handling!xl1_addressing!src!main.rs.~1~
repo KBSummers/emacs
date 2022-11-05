@@ -1,0 +1,101 @@
+use std::io::{self, BufRead};
+
+pub struct Address{
+    vcu: Option<VCU>,
+    gw:  Option<Gateway>,
+    gwa: Option<GatewayA>,
+    gwb: Option<GatewayB>,
+    gpc: Option<GPC>,
+
+}
+
+pub enum VCU{
+    VCU_AUX,
+    VCU_EDU,
+    VCU_GATEWAY,
+    VCU_GNC,
+    VCU_GPC,
+    VCU_PDU,
+    VCU_RCS,
+    VCU_TCS_1,
+    VCU_TCS_2,
+    VCU_TCS_3,
+    VCU_TCS_4,
+    VCU_TCS_5,
+    VCU_TCS_6,
+    VCU_TCS_7,
+}
+
+pub enum Gateway{
+    CCM_A,
+    CCM_B,
+    Gateway_A,
+    Gateway_B,
+}
+
+pub enum GatewayA{
+    Wifi_Antenna_1A,
+    Wifi_Antenna_2A,
+    Wifi_Antenna_3A,
+}
+pub enum GatewayB{
+    Wifi_Antenna_1B,
+    Wifi_Antenna_2B,
+    Wifi_Antenna_3B,
+}
+pub enum GPC{
+    CCM_A,
+    CCM_B,
+    GPC_A,
+    GPC_B,
+    GPC_C,
+}
+
+pub enum PCDHU{
+    Lets,
+    MSolo,
+    Nirvss,
+    Heimdall,
+    Samplr,
+    LCiris,
+    MoonRanger,
+}
+
+pub enum VCUAUX{
+    CCM_A,
+    CCM_B,
+}
+
+pub enum VCUEDU{
+    CCM_A,
+    CCM_B,
+    VCU_PM,
+    TALOS_150_01_Ox,
+    TALOS_150_02_Ox,
+    TALOS_150_03_Ox,
+    TALOS_150_04_Ox,
+    TALOS_150_05_Ox,
+    TALOS_150_06_Ox,
+    TALOS_150_01_Fu,
+    TALOS_150_02_Fu,
+    TALOS_150_03_Fu,
+    TALOS_150_04_Fu,
+    TALOS_150_05_Fu,
+    TALOS_150_06_Fu,
+    SV_F1_001,
+    SV_F1_002,
+    SV_O1_001,
+    SV_O1_002,
+    PT_O1_001,
+    PT_O1_002,
+    PT_O1_003,
+    PT_F1_001,
+    PT_F1_002,
+    PT_F1_003,
+}
+
+fn main(){
+    let stdin = io::stdin();
+    let line = stdin.lock().lines().next().unwrap().unwrap();
+    println!("{}", line);
+}

@@ -1,0 +1,85 @@
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
+use serde_json::Value;
+use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
+use std::path::Path;
+// This was intended to skip deserializng values that don't exist, but
+// it needs more work
+/*
+use serde::{Serialize, Deserialize};
+fn null_to_default<'de, D, T>(d: D) -> Result<T, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Default + Deserialize<'de>,
+{
+    let opt = Option::deserialize(d)?;
+    let val = opt.unwrap_or_else(T::default);
+    Ok(val)
+}
+ */
+
+//-----------------------------------------engine-prep-cmds-----------------------//
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct Command {
+    pub name: String,
+    pub component: Component,
+    pub children: Option<Vec<Children>>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct Children {
+    pub name: String,
+    pub component: Component,
+    //#[serde(deserialize_with = "null_to_default")]
+    pub properties: Option<Properties>,
+    pub children: Option<Vec<Children>>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct Component {
+    pub name: String,
+    #[serde(rename = "unique_name")]
+    pub unique_name: String,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct Properties {
+    #[serde(rename = "Data_Type")]
+    pub data_type: DataType,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct DataType {
+    pub path: String,
+    pub shortname: String,
+    pub text: String,
+    pub name: String,
+}
+//----------------------------ENGINE PREP COMMANDS-------------------------------//
+
+
+
+
+fn main() {
+    let path = "../../json/engine_prep.json";
+    //let path = "../../json/generic_commands.json";
+    //let s: Command = serde_json::from_str(path).expect("improper format of JSON file");
+    let s = read_from_file(path).expect("hey");
+    println!("{:#?}", s);
+}
+
+
+fn read_from_file<P: AsRef<Path>>(path: P) -> Result<Command, Box<dyn Error>>{
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+    let u = serde_json::from_reader(reader)?;
+    Ok(u)
+}

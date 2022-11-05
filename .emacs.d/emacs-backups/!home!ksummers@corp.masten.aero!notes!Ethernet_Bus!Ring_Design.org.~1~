@@ -1,0 +1,17 @@
+#+TITLE: Ethernet Network Design
+
+<2022-01-26 Wed>
+
+* Ring
+each vcu has a networks switch, those two ports connect to the ring.
+** FSW Needs
+-This requires from FSW to have drivers that have an API on top of the networks switch, so we can control the switch and forwarding rules.
+- The network switch is the brains and has the ability to do all the forwarding /sending
+* Bus
+instead of switch,, ...
+** FSW Needs
+- This would require FSW to have to develop something on top of the network switch layer and would require us to split things into time slices in order to make sure that two different things are not accessing this and causing collisions
+- This would all be hanging off one set of wires, so we need to develop stuff to prevent collisions
+- Everyone would be on a given time slot, the cadence is regulated by routine messages from teh bus
+** Reasons
+- This is to address concerns over reliability

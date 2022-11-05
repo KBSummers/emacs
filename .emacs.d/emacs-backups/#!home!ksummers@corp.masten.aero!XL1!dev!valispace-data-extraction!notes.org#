@@ -1,0 +1,64 @@
+#+title: Valispace Data Extraction
+#+startup: showall indent
+#+options: toc:nil
+* Dealing with Dead Links
+The following method will allow us to extract values from valispace without the worry of dead links crashing our program. (Valispace has a lot of extraneous dead links under valis and components that cause 404 errors when grabbing data using their API).
+
+#+name: block-1
+#+begin_src python :python python3 :session 
+import valispace
+import keyring
+mastenspace = valispace.API(url='https://valispace.masten.aero',
+username='ksummers', password=keyring.get_password("valispace", "ksummers"))
+def call_component(comp_id, mastenspace):
+    try:
+        req=mastenspace.get_component(id=comp_id)
+        if req is None:
+            req.raise_for_status()
+    except requests.HTTPError as exception:
+        print("Error accessing component with id: " + comp_id)
+        return
+    return req
+
+def call_vali(vali_id, mastenspace):
+    try:
+        req=mastenspace.get_vali(id=vali_id)
+        if req is None:
+            req.raise_for_status()
+    except requests.HTTPError as exception:
+        print("Error accessing vali with id: " + vali_id)
+        return
+    return req
+
+#+end_src
+
+#+RESULTS: block-1
+
+#+RESULTS:
+: None
+
+* Connecting to Valispace
+The following snippet will connect us to the Valispace database using my credentials
+(stored in keyring so as to inhibit exposure).
+
+
+#+begin_src python :python python3 :session 
+mm1_id = 12405
+xl1_id = 12406
+payloads_id = 12407
+
+mm1 = call_component(mm1_id, mastenspace) #12405 = mm1 id
+xl1 = call_component(xl1_id, mastenspace)
+payloads = call_component(payloads_id, mastenspace)
+#launch_vehicle =
+#ground_systems =
+#ait =
+subsystems = {}
+for child in mm1[xl1["children"]]:
+    x = call_component(child, mastenspace)
+    subsystems[x["name"]] = x
+print(mm1)
+print("hello world")
+#+end_src
+
+#+RESULTS:

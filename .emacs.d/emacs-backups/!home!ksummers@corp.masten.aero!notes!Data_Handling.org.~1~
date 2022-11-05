@@ -1,0 +1,69 @@
+During EDL data rate is so low, what does GNC need?
+They would like 10 Hz, but thats most likely not paractical.
+Towards landing, were down to around ~ 2 - 2.5 packets per second.
+^^If we have access to DSN (Deep Space Network)
+Priority telemetry packet that gives you summary of spacecraft health. We send that fairly frequently. We may need to sacrifice other data in order to get this priority telemetry health summary.
+Just based on real life test, GNC tends to be most common point of failure. They are going to want moe telemtry during entry descent and landing in order to recreate post flight what happened.
+MECO (Main Engine Cutoff) 1 meter above the surface take a little bit less than a second to drop that far, we can probably get a packet out in this time.
+When GNC intitiate our pitch-over, maybe we can get one full data packet in there.
+Trigger sending a data packet during certain events of EDL:
+	- the time it takes to put stuff in the packet, but you have to wait for previous packet to send, we keep stuffing data into packet buffer. But we save space for critical event data, if we get critical data we immediateyl stuff it in the buffer.
+	- Make sure that all critical data is focused purely on essential (maximum importance post mortem) data (this would mean propulsion temps and sensors)
+
+If there is a fault that causes transmission to cease during MECO
+If spacecraft is in process of transmitting packet during critical (interesting/flagged) event occurence, we have to wait for that packet to send before we send critical data.
+Takes 2/5 of a second to wait for a packet to send. But it will ultimately be 2/5 + a couple seconds before it reaches us.
+
+
+
+
+--Paul enters--
+In circumstances wiht lo data rates. you could disable to forward error correction and change frame size. In interest of simplicity we have one frame fits all approach.
+Theres pitch-up and MECO, both critical events where we want data and have low data rates. <-- Two important events
+If attitude goes wrong during pitch up well still probably get a signal.'
+MECO were 1 meter above surface, should be able to get one frame out at least.
+
+^^^
+Downlink at this point is 4k
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We want to specify how long the thrusters and engines are going to be on.
+If we would like to cut off earlier,  we would like that ability.
+
+
+TBD wheteher or not were going to be able ot have IMU on launch:
+If we do, we caa take advantage of capabilities: we might want certain modes.
+We might want to look through these modes. We migth want at the very least to be able to power on the this IMU.
+Does it have any type of health information that we would want as data:
+
+WE decided that yes it will be on during launch, but a lot of people have pushed back on this, for what reason??? Space-x will help to determine whether or not that can be on during the launch. Possibly a range safety thing. hopefully space-x wont have an issue
+
+These ICD's
+
+WE can write a high level
+
+We also have
+
+star tracker - power on/ power off capabilities
+
+
+The IMU is mostly going to send out data.
+
+The stuff that Juno has spcified for a time that we would also need to this common filter diagnostic is near 4K, which is already near our data budget. of state informationg we would need to evaluate the common filter performance. This should hopefully set the upper limit on what we need to use.
+
+
+~~~~~~~~~~~Data Handling -Software Management - GNC & Avionics~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+One goal is to automate,
+
+data rates need to be updated more consitently in order for system to be able to report data budget status to project management. Increase our focus on getting commads and the ability to group data into valispace.
+Start with the XTCE , we could use the use case, go over the use case that we have with systems. Dive into XTCE for GNC commands and telemetry, we need to get the structure. start making desing notes towards a utility that will report tha bandwidth and data rate.
+
+Subsystem data rates: here are the commands how often they're run, what their rates are and all that. We are responsible for reporting all of this, not GNC.
+
+Want to keep all the telemetry small as possible, but we have a dist. architecture, we might want to add a bit to ensure whether not that telemetry is valid, becuase we may have instances where we are reporting stale data. If a VCU is down, we should have a way to indicate that we have no data (aka this VCU is shut down). Thermals could be sending us ann array of thermal values to GPC, well have a place to put that. But if we've already sent that data, and it comes a time where we ahve nothing to send, this data gets sent again but with the stale data bit flag.
+There are two flavors of stale data:
+	- stale where its generated, at the source
+	- and when we're out of comms.
+Someone with a big antenna cant see our command becasue they are encrypted, but they could decode our format, mean a signal at us and prevent us to accept real commands. If we haven't detected a legit command in 24 hours, its possible we've been jammed or no comms. This should trigger some type of process.

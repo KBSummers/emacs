@@ -1,0 +1,9 @@
+#!usr/bin/env python
+class Solution:
+    def lowestCommonAncestor(self, root, p, q):
+        """
+        :type root: TreeNode
+        :type p: TreeNode
+        :type q: TreeNode
+        :rtype: TreeNode
+        """

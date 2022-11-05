@@ -1,0 +1,48 @@
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
+use serde::{Serialize, Deserialize};
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Root {
+    pub name: String,
+    pub component: Component,
+    pub children: Vec<Children>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Children {
+    pub name: String,
+    pub component: Component,
+    pub properties: Properties,
+    pub children: Vec<Children>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Component {
+    pub name: String,
+    #[serde(rename = "unique_name")]
+    pub unique_name: String,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Properties {
+    #[serde(rename = "State.Data_Type")]
+    pub state_data_type: StateDataType,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StateDataType {
+    pub path: String,
+    pub shortname: String,
+    pub text: String,
+    pub name: String,
+}
+
+fn main() {
+    println!("Hello, world!");
+}

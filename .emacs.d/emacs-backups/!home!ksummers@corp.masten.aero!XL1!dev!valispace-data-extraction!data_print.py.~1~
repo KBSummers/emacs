@@ -1,0 +1,42 @@
+import valispace
+import keyring
+from os.path import exists
+
+#mastenspace = valispace.API(url='https://valispace.masten.aero',
+#username='ksummers', password=keyring.get_password("valispace", "ksummers"))
+mm1_id = 12405
+#print(mm1)
+#comp_list = mastenspace.get_component_list(project_id=74)
+class DataTree:
+    def initialize(self):
+        self.logfile = open("data.out", "w")
+        mastenspace = valispace.API(url='https://valispace.masten.aero',
+            username='ksummers', password=keyring.get_password("valispace", "ksummers"))
+        mm1 = mastenspace.get_all_data('component')
+        count = 0
+        for key in mm1:
+            count +=1
+            print(count)
+            print(mm1[key]["name"])
+
+d = DataTree()
+d.initialize()
+
+def get_all_children(root_id):
+    f = open("data.out", "a")
+    comp_list = mastenspace.get("components/?parent="+str(root_id))
+    count = 1
+    for child in comp_list:
+        data = (mastenspace.get_component(id=child["parent"])["name"]
+                + "--->" + child["name"] + " count: " + str(count))
+        print(data)#+ "whole object")
+        f.write(data + "\n")
+        print(child)
+        count += 1
+        for subchild in child["children"]:
+            get_all_children(subchild)
+        #if child["children"] != []:
+            #get_all_children(child["id"])
+    f.close()
+
+#get_all_children(mm1_id)

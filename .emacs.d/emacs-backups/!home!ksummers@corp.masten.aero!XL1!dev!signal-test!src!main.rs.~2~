@@ -1,0 +1,288 @@
+
+
+use std::thread;
+use std::thread::JoinHandle;
+use std::time::Duration;
+use signal_hook::{consts::{SIGINT, SIGUSR1}, iterator::Signals};
+use std::sync::mpsc;
+
+use std::io::Error;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+
+
+#[path = "c_bindings.rs"]
+mod c_bindings; // this is the ffi wrapper for rpkt c code
+
+#[path = "tcp_cm_toolkit.rs"]
+mod tcp_cm_toolkit; // this is the ffi wrapper for rpkt c code
+
+//type JoinHandleType = Box<dyn thread::JoinHandle<()> + Send + Sync>;
+
+/*
+pub trait WhereInfo: WhereInfoDetails + Display + Debug {
+    //pub trait WhereInfo: WhereInfoDetails + Display {
+        fn clone(&self)->WhereInfoType;
+    }
+
+pub type WhereInfoType = Box<dyn WhereInfo + Sync + Send>;
+*/
+
+
+
+fn main() {
+    println!("Hello, world - let's test some threads!");
+    let main_pid = c_bindings::ffi_getpid_wrapper();
+    println!("Main pid is {}", main_pid);
+
+    let main_p_thread = c_bindings::get_pthread_self_wrapper();
+            //println!("A thread id is: ({})", tid);
+            println!("Main pthread id is: ({})", main_p_thread);
+
+
+            /*
+    let mut signals = Signals::new(&[SIGUSR1, SIGINT]).expect("Failed to
+            create the Signals object for thread signal watch");
+            let signal_jh = Box::new(thread::spawn(move || {
+                for sig in signals.forever() {
+                    println!("Received signal {:?}", sig); // ctrl c picked up here
+
+                }
+            }));
+            */
+
+
+
+    let (tx, rx) = mpsc::channel();
+
+    let A = thread::spawn(move||
+        {
+            // signal hook:
+            let term = Arc::new(AtomicBool::new(false));
+            signal_hook::flag::register(signal_hook::consts::SIGUSR1, Arc::clone(&term)).unwrap();
+            //while !term.load(Ordering::Relaxed) {}
+        // Do some time-limited stuff here
+        // (if this could block forever, then there's no guarantee the signal will have any
+        // effect).
+
+
+
+            /*
+            println!(".................................");
+            let my_pid = c_bindings::ffi_getpid_wrapper();
+            println!("Thread A PID = {}", my_pid);
+            let enable_cancel = c_bindings::enable_cancel_wrapper();
+            println!("Enabled cancel: {}", enable_cancel);
+            //let tid = c_bindings::ffi_get_tid_wrapper();
+            let p_thread = c_bindings::get_pthread_self_wrapper();
+            //println!("A thread id is: ({})", tid);
+            println!("A pthread id is: ({})", p_thread);
+            //tx.send(tid).unwrap();
+            tx.send(p_thread).unwrap();
+            println!(".................................");
+*/
+            println!(".................................");
+
+            let tid = c_bindings::ffi_get_tid_wrapper();
+            println!("A thread id is: ({})", tid);
+            tx.send(tid).unwrap();
+            println!(".................................");
+
+
+
+            let mut x = 0;
+            while x < 3
+            {
+                x = x+1;
+                println!("A {}", x);
+                thread::sleep(Duration::from_millis(1000));
+            }
+            let server_result = c_bindings::udp_server_wrapper(); // blocking read
+            while x < 10
+            {
+                if term.load(Ordering::Relaxed)
+                {
+                    println!("Exiting thread A early");
+                    break;
+                }
+                x = x+1;
+                println!("A {}", x);
+                thread::sleep(Duration::from_millis(1000));
+            }
+        });
+
+
+
+            let mut x = 0;
+            while x < 3
+            {
+                x = x+1;
+                println!("Top {}", x);
+                thread::sleep(Duration::from_millis(1000));
+            }
+
+
+// pthread_cancel
+/*
+        println!("Getting pthread from channel");
+        let pthread = rx.recv().unwrap();
+        println!("Received pthread ({}) from channel", pthread);
+        let res = c_bindings::ffi_pthread_kill_wrapper(pthread);
+        println!("kill result: {}", res);
+  */
+
+  // tgkill
+        println!("Getting tid from channel");
+        let tid = rx.recv().unwrap();
+        println!("Received tid ({}) from channel", tid);
+        let res = c_bindings::ffi_tgkill_wrapper(tid); // should kill the "tid" thread.
+        println!("kill result: {}", res);
+
+
+        while x < 10
+            {
+                x = x+1;
+                println!("Top {}", x);
+                thread::sleep(Duration::from_millis(1000));
+            }
+
+            let res = A.join();
+            match res
+            {
+                Ok(r)=>println!("A join successful"),
+                Err(e)=>println!("Error on join: {:?}", e),
+            }
+
+
+
+
+}
+
+fn do_everything()
+{
+    let mut signals = Signals::new(&[SIGUSR1, SIGINT]).expect("Failed to
+            create the Signals object for thread signal watch");
+            let signal_jh = Box::new(thread::spawn(move || {
+                for sig in signals.forever() {
+                    println!("Received signal {:?}", sig); // ctrl c picked up here
+
+                }
+            }));
+
+    let mut B: Option<JoinHandle<()>> = None;
+    let A = thread::spawn(move|| {
+
+
+        let (tx, rx) = mpsc::channel();
+
+        B = Some(thread::spawn(move || {
+
+            println!(".................................");
+            let tid = c_bindings::ffi_get_tid_wrapper();
+            println!("B thread id is: ({})", tid);
+            tx.send(tid).unwrap();
+            println!(".................................");
+
+            // with firefox, I get 1 read and then it sticks (desirable) waiting for response.
+            // during that time, the line below is blocking on a read.
+            // will a kill signal from thread A unblock the read??
+
+            //tcp_cm_toolkit::start_and_read_tcp("localhost:8080".to_string());  // signal didn't wake this up
+            println!("Trying server in c");
+            //let server_result = c_bindings::ffi_get_server_wrapper(); // had trouble getting a blocking read - I think I was losing the connection
+
+            let server_result = c_bindings::udp_server_wrapper();
+
+
+            let mut x = 0;
+            while x < 3
+            {
+                x = x+1;
+                println!("B{}", x);
+                thread::sleep(Duration::from_millis(1000));
+            }
+
+            /*
+            // doesn't kill this B thread. Check from outside the thread, then see if it will at least interrupt io
+            let res = c_bindings::ffi_tgkill_wrapper(tid); // should kill the "tid" thread.
+            println!("kill result: {}", res);
+            */
+
+            while x < 10
+            {
+                x = x+1;
+                println!("B{}", x);
+                thread::sleep(Duration::from_millis(1000));
+            }
+
+
+
+            //panic!();
+        }));
+        //B.join();
+        //B.unwrap().join();
+
+
+        println!("You have 20 seconds to connect browser to localhost:8080.
+        After doing that, let this program sit waiting on second read. The kill signal at 20 seconds should end the
+        read io block, allowing thread B to report counter and eventually finish");
+        let mut x = 0;
+        while x < 20
+        {
+            x = x+1;
+            println!("A{}", x);
+            thread::sleep(Duration::from_millis(1000));
+        }
+
+        // this didn't actually bring down the thread, but will it disrupt a read on the thread?
+        println!("Getting tid from channel");
+        let tid = rx.recv().unwrap();
+        println!("Received tid ({}) from channel", tid);
+        let res = c_bindings::ffi_tgkill_wrapper(tid); // should kill the "tid" thread.
+        println!("kill result: {}", res);
+
+        B.unwrap().join();
+
+
+        while x < 40
+        {
+            x = x+1;
+            println!("A{}", x);
+            thread::sleep(Duration::from_millis(1000));
+        }
+
+        //panic!();
+    });
+
+    A.join();
+    //B.unwrap().join();
+}
+
+
+
+
+
+
+// Working:
+/*
+use std::thread;
+use std::time::Duration;
+
+fn main() {
+    println!("Hello, world - let's test some threads!");
+    let h = thread::spawn(|| {
+
+        let mut x = 0;
+        while x < 3
+        {
+            x = x+1;
+            println!("A{}", x);
+            thread::sleep(Duration::from_millis(1000));
+        }
+
+        //panic!();
+    });
+    h.join();
+}
+
+*/

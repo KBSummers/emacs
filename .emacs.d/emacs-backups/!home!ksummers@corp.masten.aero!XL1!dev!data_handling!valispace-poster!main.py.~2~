@@ -1,0 +1,142 @@
+import valispace
+import keyring
+import requests
+import json
+import re
+import time
+mastenspace = valispace.API(url='https://valispace.masten.aero',
+              username='ksummers', password=keyring.get_password("valispace", "ksummers"))
+
+def post_hga_controls(mastenspace):
+    even = []
+    odd = []
+    arr = ['Axis 1 Command', 'Command to move axis 1 to a position',
+           'Axis 2 Command', 'Command to move axis 2 to a position',
+           'Resolver R1-1', 'Report Resolver R1-1 value - Optisys debug',
+           'Resolver R1-2', 'Report Resolver R1-2 value - Optisys debug',
+           'Resolver R2-1', 'Report Resolver R2-1 value - Optisys debug',
+           'Resolver R2-2', 'Report Resolver R2-2 value - Optisys debug',
+           'Axis 1 Position', 'Report Axis 1 calculated position',
+           'Axis 1 Fine Position', 'Report calculated fine position - Optisys debug',
+           'Axis 1 Course Position', 'Report calculated course position - Optisys debug',
+           'Axis 2 Position', 'Report Axis 2 calculated position',
+           'Axis 2 Fine Position', 'Report calculated fine position - Optisys debug',
+           'Axis 2 Course Position', 'Report calculated course position - Optisys debug',
+           'Axis 1 Position Feedback Constants', 'Axis 1 K in matlab - Optisys tuning constant',
+           'Axis 2 Position Feedback Constants', 'Axis 2 K in matlab - Optisys tuning constant',
+           'Axis 2 Velocity', 'Velocity limit - default 0.1degrees/s - Optisys tuning constant',
+           'Axis 2 Acceleration', 'Acceleration limit - default 0.1degrees/s2 - Optisys tuning constant',
+           'Axis 2 Steady Rate Error', 'Maximum allowed steady state error - Optisys tuning constant',
+           'Axis 2 Positive Soft Limit', 'Maximum allowed motion in the positive direction - Optisys tuning constant',
+           'Axis 2 Negative Soft Limit', 'Maximum allowed motion in the negative direction - Optisys tuning constant',
+           'Waveguide Position Command', 'Command the wavguide switch to state 0 or 1',
+           'Waveguide Position Feedback', 'Report the waveguide switch state',
+           'Prime Power Voltage', 'Report value',
+           'Prime Power Current', 'Report value',
+           'ACU Temperature', 'Report value',
+           'Motor 1 Current', 'Report value',
+           'Motor 2 Current', 'Report value',
+           'Waveguide Switch Current', 'Report value',
+           'Heater Region #1 Temperature', 'Report value',
+           'Heater Region #2 Temperature', 'Report value',
+           'Heater Region #3 Temperature', 'Report value',
+           'Heater Region #4 Temperature', 'Report value',
+           'Heater Region #5 Temperature', 'Report value',
+           'Heater Region #6 Temperature', 'Report value',
+           'Heater Region #7 Temperature', 'Report value',
+           'Heater Region #8 Temperature', 'Report value',
+           'Heater Region #9 Temperature', 'Report value',
+           'Heater Region #10 Temperature', 'Report value',
+           'Reset', '',
+           'Identification', 'Optisys SN and Software Rev number',
+           'ACU Sensor - Prime Power Voltage', 'Report value',
+           'ACU Sensor - Prime Power Current', 'Report value',
+           'ACU Sensor - Temperature', 'Report value',
+           'ACU Sensor - Motor Current', 'Report value',
+           'ACU Sensor - Switch Current', 'Report value',
+           'Temperature Thresholds', 'Set vector of temperature thresholds in nonvolatile memory',
+           'Axis 1 Servo Constants', 'Set axis 1 servo constants in nonvolatile memory',
+           'Axis 2 Servo Constants', 'Set axis 2 servo constants in nonvolatile memory',
+           'Redundant Circuit State', 'Report if primary state 0 or redundant state 1 is used',
+           'Redundant Circuit Change Command', 'Command to change ACU to a new state',
+           'Heater Region #1 State', 'Set heater #1 state to off, on, or automatic',
+           'Heater Region #2 State', 'Set heater #2 state to off, on, or automatic',
+           'Heater Region #3 State', 'Set heater #3 state to off, on, or automatic',
+           'Heater Region #4 State', 'Set heater #4 state to off, on, or automatic',
+           'Heater Region #5 State', 'Set heater #5 state to off, on, or automatic',
+           'Heater Region #6 State', 'Set heater #6 state to off, on, or automatic',
+           'Heater Region #7 State', 'Set heater #7 state to off, on, or automatic',
+           'Heater Region #8 State', 'Set heater #8 state to off, on, or automatic',
+           'Heater Region #9 State', 'Set heater #9 state to off, on, or automatic',
+           'Heater Region #10 State', 'Set heater #10 state to off, on, or automatic',
+           'Motor 1 State', 'Set motor 1 state to off or on',
+           'Motor 2 State', 'Set motor 2 state to off or on',
+           'Resolver R1-1 State', 'Set resolver R1-1 state to off or on',
+           'Resolver R1-2 State', 'Set resolver R1-2 state to off or on',
+           'Resolver R2-1 State', 'Set resolver R2-1 state to off or on',
+           'Resolver R2-2 State', 'Set resolver R2-2 state to off or on',
+           'Axis 1 Stowed Command', 'Set position for stowed configuration. May exceed soft limits',
+           'Axis 2 Stowed Command', 'Set position for stowed configuration. May exceed soft limits',
+           'Axis 1 Un-stowed Command', 'Remove antenna axis 1 from stowed configuration',
+           'Axis 2 Un-stowed Command', 'Remove antenna axis 2 from stowed configuration',
+           'Controller Status', 'Set controller to a wake or sleep state']
+    for i in range(0, len(arr)):
+        if i % 2:
+            even.append(arr[i])
+        else:
+            arr[i] = re.sub('\s', '', arr[i])
+            arr[i] = re.sub('-', '_', arr[i])
+            arr[i] = re.sub('#', '', arr[i])
+            odd.append(arr[i])
+    for x, y in zip(odd,even):
+        print(f"{x} -----> {y}")
+        d = """{
+            "shortname": "%s",
+            "text": "%s",
+            "parent": 21858
+        }""" % (x, y)
+        #print(d)
+        mastenspace.post_data(type='textvali', data=d)
+        time.sleep(4)
+
+def post_comms_normal_telem():
+    x = """
+        HGA_Azimuth
+        HGA_ControllerTemp_A
+        HGA_ControllerTemp_B
+        HGA_DeployState
+        HGA_Elevation
+        HGA_MotorTemp
+        HGA_SwitchState
+        SSPA_Fault_Current_A
+        SSPA_Fault_Current_B
+        SSPA_Fault_Temp1_A
+        SSPA_Fault_Temp1_B
+        SSPA_Fault_Temp2_A
+        SSPA_Fault_Temp2_B
+        SSPA_Fault_Voltage_A
+        SSPA_Fault_Voltage_B
+        TRX_CarrierLockDetect_A
+        TRX_CarrierLockDetect_B
+        TRX_Ebno_A
+        TRX_Ebno_B
+        TRX_RSSI_A
+        TRX_RSSI_B
+        TRX_SubcarrierLockDetect_A
+        TRX_SubcarrierLockDetect_B
+        TRX_Temp_A
+        TRX_Temp_B
+        TRX_TransponderCurrent_A
+        TRX_TransponderCurrent_B
+    """
+    y = x.split()
+    for word in y:
+        d = """{
+            "name": "%s",
+            "parent": 21880
+        }""" % word
+        time.sleep(4)
+
+
+post_comms_normal_telem()
+#post_hga_controls(mastenspace)

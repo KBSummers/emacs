@@ -1,0 +1,64 @@
+#+title: LEE Notes
+** EPS standup needs
+-telemtery to say settings of the seitched
+-RLCL (basically like breakers) if you pull too much current they power off, but you can reset it and turn it back on
+- What are they suppliying us for current information, if an RLCL blows can we tell which current was being pulled through. We can pull again and see what blows?
+- Eliminate those and take out RLCL as a point of failure.
+- If one of them fails, we've lost the spacecraft.
+- If there is a transient failure inRLCL or device its powering such that RLCL gets tripped, we can turn it back on and see.
+- Is th eporbability that an RLCL gets a hard failure a lower priority than us having multiple soft failures, because if it gets powered off were screwed.
+- Tell me more about the RLCL's work
+- We dont know what we can control from FSW really, its conceivable that these things(RLCL) can be turned off like a breaker, is it like an on/off switch.
+1. What can we control?
+2. How do we control it?
+C&DH document is basically a guess.
+Solar panels
+- are there error conditions we need to handle?
+- FDIR -
+- Subsystem documents dection in confluence/ share to sharepoint link
+
+
+THEY ARE TALKING about a lot of actuators. we can onyl fit in a few dowzen and there are more sensors, we want a sense of how many (spcifically how many different TYPES of Sensors they ahve and what types of things were controlling) how do we control them. most of them i believe are on/off switches controlled through gpio, the sensors, are they booleans are do we need to do a "d-to-A" to sketch that out
+
+^^ Put all of this under the design documents, under tthe VCU section...
+Create a PDU section underneath all of this. Thats a good place to start tracking theose sensors. Figuer out about availability of EDU boards. *These are dev VCU's* THE PDU needs more memory and more storage, those will be on the PM.
+
+PDU EDU desing went well, found a way
+between the CCM and the SM:
+- to make them workable to the new design, may take some time.
+- design will need to begin
+-$13000 for a 100 amp relay, there pretty reliable but pretty expensive.
+- Cant' rely on the CM because that would fall back on software.
+- do you we need that relay??
+- install before flight loopback that Jack will provide,  This shouldnt be a point of failure.
+- Do we add this to the risk matrix.
+
+Brian:
+- Buying network switches for the TMS570
+- Major parts of the network switch in the CM are not available.
+
+Mari:
+- for all the boards the need all docs BOM and MFG's to be able to spin the boards quickly
+
+** Chassis Update
+- Connectors will have a flex cable that connects to the TM boards
+- The goal is to maximize board space inside the enclosure
+- The board isn't effected by structural loads on the backside
+- Supporting Farside to do thermal analysis
+- Thermal concerns about the GPC in general, do we need to mount it on the radiator
+
+** CCM's
+- David is working on analysis of bandwidth on that.
+- In parallel, looking at FPGA or alternative chip
+- Can we get the bandwidth we need from an FPGA?
+^ Lead time of 16 weeks for an intel FPGA
+
+** Selector Module
+- need to order a lot of the parts Abhi had left arounds
+- multiplexers at nausea all over the place
+^ CCM takes precedence over this
+
+** Where Mari's at
+- HGA patterns have been given for EMA
+- talked to new vendor about PCBA's
+^ If e go with them, they can help with optical/circuit(current?) testing

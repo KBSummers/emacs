@@ -1,0 +1,38 @@
+
+use std::fmt;
+use std::fmt::Write;
+
+struct HelloWorld{
+    x: &'static str,
+    y: i32,
+    c: Child,
+}
+struct Child{
+    n: &'static str,
+}
+
+impl fmt::Display for HelloWorld{
+    fn fmt(&self, f: &mut fmt::Formatter)->fmt::Result{
+        let mut s = "struct ".to_string();
+        write!(s, "{} {{\n", self.x);
+        write!(s, "\ty: {}\n", self.y);
+        write!(s, "\tch: {}\n", self.c.n);
+        write!(s, "{}", "}\n");
+        write!(s, "{}", self.c.to_string());
+        return write!(f, "{}", s)
+    }
+}
+impl fmt::Display for Child{
+    fn fmt(&self, f: &mut fmt::Formatter)->fmt::Result{
+        let mut s = "struct ".to_string();
+        write!(s, "{} {{\n", self.n);
+        write!(s, "\tn: {}\n}}", self.n);
+        return write!(f, "{}", s);
+    }
+}
+
+fn main() {
+    let ch = Child {n: "myname"};
+    let hw = HelloWorld { x: "helloworld", y: 68, c: ch};
+    println!("{}", hw.to_string());
+}

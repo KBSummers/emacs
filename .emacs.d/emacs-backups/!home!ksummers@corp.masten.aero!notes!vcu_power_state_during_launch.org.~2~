@@ -1,0 +1,6 @@
+#+title: VCU Power State Notes
+
+RCS triples don't have the same number of pre-protections before them, because all of the extra valves for the propellant, because the RCS are cold gas, they dont have all those tank protections.
+
+=Range safety requirement= systems which lead to catastrophic failures need to be 2-fault tolerant. So if we have iso-valve, you need 3, so that 2 could fail and we would be good. For critical failures, we need single fault tolerance.
+We may want to have the RCS-VCU powered off to meet this requirement. The way it is wired now, we will not get the pressure transducer telemetry for those. We may need to move these pressure transducers.

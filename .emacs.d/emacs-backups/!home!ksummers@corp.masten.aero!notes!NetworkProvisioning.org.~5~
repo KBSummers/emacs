@@ -1,0 +1,46 @@
+#+title: Network Provisioning
+#+startup: showall indent
+#+options: toc:nil
+
+* Mission Control Systems
+- were using YAMCS currently, but we may have issues with support and the yamcs studio constantly crashes
+- telemetry and commands will all be stored in yamcs database
+
+* Magic
+We will configure pseudo terminals configured for a different IP, data coming into that will be read by the data relay. Its reading fully constructed SLIP packets, does compression magic to make header a lot smaller. It then sends it via TCP to the ground gateway. All of the traffic si going to go on the data relay, the rpacket server sends UDP packets, and then well have other UDP packets that come to the data relay. WE want ot the relay to get all of that traffic, we might have one data relay or multiple copies. All IP traffic going to spacecraft is taken as SLIP packets, encrypted and send to the ground gateway via TCP.
+
+* NAT
+** On the Ground
+We will need to take this traffic coming into the masten firewall before it hits rpacket, to determine which is TCP and UDP, which is going to web server, we might do this through iproutes specifying the source ports. TCP traffic is handled, taken to web server or sent to rpacket server. We also have UDP packets coming out of the Masten Firewall that will bypass the Rpkt server.
+** On the Spacecraft
+-TBD
+
+** VLAN
+- there's no point when were not passing to external equipment, we should just use zones. You could assign a VLAN tag, but its not ever going to get used.
+** Zoning Instead of VLAN
+-This will be handled through policies on the Masten firewall. These IP's can't see each other, they can only see the end points.
+** Moonranger Multiple IP Request
+- Each payload either has 2 IP addresses or 2 ports. One IP address per payload line was original thought. There will also be a metacommand line for each payload (maybe another IP address to send to or perhaps a port). Our SLIP/PPP payloads only have one line,
+
+[2022-02-04 Fri]
+* NAT Points
+- restrict access to daemons, disable protocols (ICMP etc.)
+
+[http://10.27.6.200:8090/pages/viewpage.action?pageId=69102][Payload IP Info]
+
+* IP Provisions Needed For:
+- Heimdall (1 Extra)
+- NIRVSS (2 Extra)
+- SAMPLR (1 Extra)
+- Moonranger wants 4 IP addresees, WIFI based, two channels of WIFI?
+
+* Ground Side
+** Firewall Zones
+- No need for VLANing inside of MOC, zones more practical.
+
+* For Spacecraft
+- Linux based, just VLAN there.
+- 10.0.0.0/24 network
+** PCDHU IP's
+- These will be fixed, (currently 192.168.10.140), everything through this interface then *distinguished by port* Ports ranging from 1230-1240...odd we can change this, lets keep it contiguous. Something like 10,000-10,015.
+- We can change this now, requires reimaging.

@@ -1,0 +1,1 @@
+("~/resumes/mcdowell-cv/" "~/react-app/" "~/leetcode/" "~/.emacs.d/" "~/.emacs.d/elpa/tsc-20211211.1220/" "~/.emacs.d/elpa/vterm-20211226.817/" "~/.emacs.d/elpa/tsc-20211208.1154/" "~/.emacs.d/elpa/vterm-20211209.58/")

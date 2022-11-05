@@ -1,0 +1,75 @@
+fn main() {
+    println!("Hello, world!");
+}
+
+//~~~~~~commands~~~~~~//
+pub struct Command{
+    destination: u8;
+    counter: u32;
+    fn new(){
+        println!("new");
+    }
+    fn send(){
+        // serialize the data
+        println!("send");
+    }
+}
+
+pub struct CommandThermal{
+    abc: command;
+    enum command_id{
+        PingThermal,
+        SensorThermal,
+    }
+}
+
+pub struct PingThermal{
+    cmd : CommandThermal;
+    magic_number: u16; // This is what we echo back as response
+}
+
+pub struct SensorThermal{
+    cmd: CommandThermal;
+    sensor_id: u16;
+    enable: bool;
+}
+//~~~~~~commands~~~~~~//
+
+//~~~~~~response~~~~~~//
+
+pub struct Response{
+    source: u8;
+    counter: u32;
+    fn new(){
+        // google default rust struct initialization
+    }
+    fn receive(){
+        // this needs to desrialize the buffer
+    }
+}
+
+pub struct ResponseThermal{
+    def: Response;
+    enum Response{
+        EchoThermal,
+        SensorErrorResponse,
+        SensorSuccessResponse,
+    }
+}
+
+pub struct EchoThermal{
+    magic_number: u16;
+}
+
+pub struct SensorErrorResponse{
+    sensor_id: u16;
+    /*
+    enum error_type{
+        
+    }
+    */
+}
+pub struct SensorSuccessResponse{
+    sensor_id: u16;
+    enable: bool;
+}

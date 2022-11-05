@@ -1,0 +1,137 @@
+I#!/usr/bin/python3
+import sys
+prompt = """Please enter a number for which type of test to run:
+1 - 2wire
+2 - async
+3 - bisync
+4 - cwrapper
+5 - hdlc
+6 - raw
+7 - signals
+8 - xsync\n"""
+
+answer = int(input(prompt))
+okin = [1, 2, 3, 4, 5, 6, 7, 8]
+while answer not in okin:
+        print("Please enter an appropriate integer (1 through 8)")
+        answer = int(input(prompt))
+
+
+def twowire():
+    prompt = """
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+primary station usage:
+python 2wire.py mghdlc1
+
+secondary station usage
+python 2wire.py mghdlc2 s
+
+2-wire/bussed serial connections use a single differential pair for
+send and receive data. Clocks are recovered from the data signal.
+Only one device at a time sends. The transmit data output MUST be
+disabled to allow other devices to send.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Do you require primary or secondary station test?
+1. Primary
+2. Secondary
+"""
+    okin = [1, 2]
+    answer = int(input(prompt))
+    while answer not in okin:
+        print("Please enter an approptiate integer (1 or 2)")
+        answer = int(input(prompt))
+    if answer == 1:
+        sys.argv = ['hdlc1']
+    else:
+        sys.argv = ['hdlc2', 's']
+    exec(open("samples/2wire.py").read())
+    return
+
+def asyncs():
+    prompt="""
+asynchronous/isochronous protocol sample
+- send data in main thread
+- receive data in receive thread
+
+== Single Port Use ==
+Connect TxD data output to RxD data input with
+loopback plug or external cabling. Alternatively, set
+settings.internal_loopback = True.
+
+== Two Port Use ==
+Connect ports with crossover cable that:
+- connects data output of each port to data input of other port
+Run sample on both ports.
+
+Edit ISOCHRONOUS constant below to select isochronous protocol.
+Isochronous uses async framing with an external clock. When using
+isochronous, the clock output (transmit clock) must be connected
+to the RxC clock input.
+Select one of the following of isochronous or not:
+1. Isochronous
+2. Non-Isochronous
+"""
+    answer = int(input(prompt))
+    okin = [1, 2]
+    while answer not in okin:
+        print("Please enter an appropriate integer (1 or 2)")
+        answer = int(input(prompt))
+    if answer == 1:
+        sys.argv = [True, '/dev/ttyUSB']
+    else:
+        sys.argv = [False, '/dev/ttyUSB']
+    exec(open("samples/async.py").read())
+    return
+
+def bisync():
+
+    exec(open("samples/bisync.py").read())
+    return
+
+def cwrapper():
+    exec(open("samples/cwrapper.py").read())
+    return
+
+def hdlc():
+    exec(open("samples/hdlc.py").read())
+    return
+
+def raw():
+    prompt = """
+raw synchronous protocol sample
+- send data in main thread
+- receive data in receive thread
+
+== Single Port Use ==
+Connect data and clock outputs to data and clock inputs with
+loopback plug or external cabling. Alternatively, set
+settings.internal_loopback = True.
+
+== Two Port Use ==
+Connect ports with crossover cable that:
+- connects data output of each port to data input of other port
+- connects clock output of one port to clock inputs of both ports
+Run sample on both ports.
+"""
+
+    exec(open("samples/raw.py").read())
+    return
+
+def signals():
+    exec(open("samples/signals.py").read())
+    return
+
+def xsync():
+    exec(open("samples/xsync.py").read())
+    return
+
+functions = {1 : twowire,
+             2 : asyncs,
+             3 : bisync,
+             4 : cwrapper,
+             5 : hdlc,
+             6 : raw,
+             7 : signals,
+             8 : xsync,
+}
+functions[answer]()

@@ -1,0 +1,427 @@
+use std::io::{self, BufRead};
+use std::str::Split;
+use std::fmt;
+//#![allow(non_camel_case_types)]
+//#![allow(dead_code)]
+
+// Schema Definition for the following:
+// XL1
+// ╰──VCU_Gateway
+// 	╰──VCU_SM
+// 	╰──VCU_CCM_A
+// 	╰──VCU_CCM_B
+// 	╰──Gateway_A
+// 		╰──PCDHUInterface
+// 		╰──WifiAntenna1A
+// 		╰──WifiAntenna2A
+// 		╰──WifiAntenna3A
+// 		╰──DataLinkRelay
+// 	╰──Gateway_
+// 		╰──PCDHUInterface
+// 		╰──WifiAntenna1B
+// 		╰──WifiAntenna2B
+// 		╰──WifiAntenna3B
+// 		╰──DataLinkRelay
+// ╰──VCU_GPC
+// 	╰──VCU_SM
+// 	╰──VCU_CCM_A
+// 	╰──VCU_CCM_B
+// 	╰──GPC_A
+// 		╰──FlightSoftwareCore
+// 		╰──KeepAliveDaemon
+// 		╰──cFS
+// 		╰──WatchdogDaemon
+// 		╰──GNCExecutive
+// 		╰──GNCVirtualizationInterface
+// 		╰──FailureMonitor
+// 	╰──GPC_B
+// 		╰──FlightSoftwareCore
+// 		╰──KeepAliveDaemon
+// 		╰──cFS
+// 		╰──WatchdogDaemon
+// 		╰──GNCExecutive
+// 		╰──GNCVirtualizationInterface
+// 		╰──FailureMonitor
+// 	╰──GPC_C
+// 		╰──FlightSoftwareCore
+// 		╰──KeepAliveDaemon
+// 		╰──cFS
+// 		╰──WatchdogDaemon
+// 		╰──GNCExecutive
+// 		╰──GNCVirtualizationInterface
+// 		╰──FailureMonitor
+// ╰──PCDHU
+// 	╰──PCDHUInterface
+// 	╰──LETS
+// 	╰──MSolo
+// 	╰──NIRVSS
+// 	╰──Heimdall
+// 	╰──SAMPLR
+// 	╰──MoonRanger
+// 	╰──LCiris
+// ╰──VCU_AUX
+// 	╰──VCU_SM
+// 	╰──VCU_CCM_A
+// 	╰──VCU_CCM_B
+// ╰──VCU_EDU
+// 	╰──VCU_SM
+// 	╰──VCU_CCM_A
+// 	╰──VCU_CCM_B
+// 	╰──VCU_PM
+// 	╰──Solenoids
+// 		╰──TALOS-150-01_Ox
+// 		╰──TALOS-150-02_Ox
+// 		╰──TALOS-150-03_Ox
+// 		╰──TALOS-150-04_Ox
+// 		╰──TALOS-150-05_Ox
+// 		╰──TALOS-150-06_Ox
+// 		╰──TALOS-150-01_Fu
+// 		╰──TALOS-150-02_Fu
+// 		╰──TALOS-150-03_Fu
+// 		╰──TALOS-150-04_Fu
+// 		╰──TALOS-150-05_Fu
+// 		╰──TALOS-150-06_Fu
+// 	╰──Valves
+// 		╰──SV-F1-001
+// 		╰──SV-F1-002
+// 		╰──SV-O1-001
+// 		╰──SV-O1-002
+// 	╰──Sensors
+// 		╰──PT-O1-001
+// 		╰──PT-O1-002
+// 		╰──PT-O1-003
+// 		╰──PT-F1-001
+// 		╰──PT-F1-002
+// 		╰──PT-F1-003
+// ╰──VCU_GNC
+// 	╰──VCU_SM
+// 	╰──VCU_CCM_A
+// 	╰──VCU_CCM_B
+// 	╰──Flare_Altimeter
+// 	╰──IMU_A
+// 	╰──IMU_B
+// 	╰──NDL
+// 	╰──StarTracker_A
+// 	╰──StarTracker_B
+// 	╰──SunSensor_1A
+// 	╰──SunSensor_2A
+// 	╰──SunSensor_3A
+// 	╰──SunSensor_1B
+// 	╰──SunSensor_2B
+// 	╰──SunSensor_3B
+// 	╰──TRN
+// ╰──VCU_RCS
+// 	╰──VCU_SM
+// 	╰──VCU_CCM_A
+// 	╰──VCU_CCM_B
+// 	╰──Thrusters
+// 		╰──CG-P1-001
+// 		╰──CG-P1-002
+// 		╰──CG-P1-003
+// 		╰──CG-P1-004
+// 		╰──CG-P1-005
+// 		╰──CG-P1-006
+// 		╰──CG-P1-007
+// 		╰──CG-P1-008
+// 		╰──CG-P1-009
+// 		╰──CG-P1-010
+// 		╰──CG-P1-011
+// 		╰──CG-P1-012
+// 	╰──Valves
+// 		╰──SV-P1-001
+// 		╰──SV-P1-002
+// 		╰──SV-P1-003
+// 		╰──SV-P1-004
+// 		╰──SV-P1-005
+// 	╰──Sensor
+// 		╰──PT-P1-001
+// 		╰──PT-P1-002
+// 		╰──PT-P1-003
+// 		╰──PT-P1-004
+// ╰──VCU_PDU
+// 	╰──VCU_SM
+// 	╰──VCU_PM_B
+// 	╰──VCU_PM_A
+// 	╰──Solar Array Power Controller
+// 		╰──SAPC1
+// 		╰──SAPC2
+// 		╰──SAPC3
+// 		╰──SAPC4
+// 		╰──SAPC5
+// 		╰──SAPC6
+// 	╰──Batteries
+// 		╰──BCDR_1
+// 		╰──BCDR_2
+// 		╰──BCDR_3
+// 		╰──BCDR_4
+// 	╰──Transponders Stuff
+// 		╰──TRX_A
+// 		╰──TRX_B
+// 		╰──SSPA_A
+// 		╰──SSPA_B
+// 		╰──ACU
+// ╰──VCU_TCS_1
+// 	╰──VCU_SM
+// 	╰──VCU_CCM_A
+// 	╰──VCU_CCM_B
+// 	╰──Approx. 33 Heater Lines
+// 	╰──Approx. 29 Sensors
+// ╰──VCU_TCS_2
+// 	╰──VCU_SM
+// 	╰──VCU_CCM_A
+// 	╰──VCU_CCM_B
+// 	╰──Approx. 33 Heater Lines
+// 	╰──Approx. 29 Sensors
+// ╰──VCU_TCS_3
+// 	╰──VCU_SM
+// 	╰──VCU_CCM_A
+// 	╰──VCU_CCM_B
+// 	╰──Approx. 33 Heater Lines
+// 	╰──Approx. 29 Sensors
+// ╰──VCU_TCS_4
+// 	╰──VCU_SM
+// 	╰──VCU_CCM_A
+// 	╰──VCU_CCM_B
+// 	╰──Approx. 33 Heater Lines
+// 	╰──Approx. 29 Sensors
+// ╰──VCU_TCS_5
+// 	╰──VCU_SM
+// 	╰──VCU_CCM_A
+// 	╰──VCU_CCM_B
+// 	╰──Approx. 33 Heater Lines
+// 	╰──Approx. 29 Sensors
+// ╰──VCU_TCS_6
+// 	╰──VCU_SM
+// 	╰──VCU_CCM_A
+// 	╰──VCU_CCM_B
+// 	╰──Approx. 33 Heater Lines
+// 	╰──Approx. 29 Sensors
+// ╰──VCU_TCS_7
+// 	╰──VCU_SM
+// 	╰──VCU_CCM_A
+// 	╰──VCU_CCM_B
+// 	╰──Approx. 33 Heater Lines
+// 	╰──Approx. 29 Sensors
+// ╰──HGA
+// ╰──Digital Video Controller
+// 	╰──Camera1
+// 	╰──Camera2
+// 	╰──Camera3
+// 	╰──Camera4
+pub struct Address{
+    vcu: Option<VCU>,
+    gw:  Option<Gateway>,
+    gwa: Option<GatewayA>,
+    gwb: Option<GatewayB>,
+    gpc: Option<GPC>,
+
+}
+
+pub struct VCU{
+    aux: Option<VCU_AUX>,
+    edu: Option<VCU_EDU>,
+    gw: VCU_GATEWAY,
+    gnc: VCU_GNC,
+    gpc: VCU_GPC,
+    pdu: VCU_PDU,
+    rcs: VCU_RCS,
+    tcs1: VCU_TCS_1,
+    tcs2: VCU_TCS_2,
+    tcs3: VCU_TCS_3,
+    tcs4: VCU_TCS_4,
+    tcs5: VCU_TCS_5,
+    tcs6: VCU_TCS_6,
+    tcs7: VCU_TCS_7,
+}
+
+pub struct VCU_AUX{
+
+}
+pub struct VCU_EDU{
+
+}
+pub struct VCU_GATEWAY{
+
+}
+pub struct VCU_GNC{
+
+}
+pub struct VCU_GPC{
+
+}
+pub struct VCU_PDU{
+
+}
+pub struct VCU_RCS{
+
+}
+pub struct VCU_TCS_1{
+
+}
+pub struct VCU_TCS_2{
+
+}
+pub struct VCU_TCS_3{
+
+}
+pub struct VCU_TCS_4{
+
+}
+pub struct VCU_TCS_5{
+
+}
+pub struct VCU_TCS_6{
+
+}
+pub struct VCU_TCS_7{
+
+}
+
+pub enum VCU{
+    VCU_AUX,
+    VCU_EDU,
+    VCU_GATEWAY,
+    VCU_GNC,
+    VCU_GPC,
+    VCU_PDU,
+    VCU_RCS,
+    VCU_TCS_1,
+    VCU_TCS_2,
+    VCU_TCS_3,
+    VCU_TCS_4,
+    VCU_TCS_5,
+    VCU_TCS_6,
+    VCU_TCS_7,
+}
+
+pub enum Gateway{
+    CCM_A,
+    CCM_B,
+    Gateway_A,
+    Gateway_B,
+}
+
+pub enum GatewayA{
+    Wifi_Antenna_1A,
+    Wifi_Antenna_2A,
+    Wifi_Antenna_3A,
+}
+pub enum GatewayB{
+    Wifi_Antenna_1B,
+    Wifi_Antenna_2B,
+    Wifi_Antenna_3B,
+}
+pub enum GPC{
+    CCM_A,
+    CCM_B,
+    GPC_A,
+    GPC_B,
+    GPC_C,
+}
+
+pub enum PCDHU{
+    Lets,
+    MSolo,
+    Nirvss,
+    Heimdall,
+    Samplr,
+    LCiris,
+    MoonRanger,
+}
+
+pub enum VCUAUX{
+    CCM_A,
+    CCM_B,
+}
+
+pub enum VCUEDU{
+    CCM_A,
+    CCM_B,
+    VCU_PM,
+    TALOS_150_01_Ox,
+    TALOS_150_02_Ox,
+    TALOS_150_03_Ox,
+    TALOS_150_04_Ox,
+    TALOS_150_05_Ox,
+    TALOS_150_06_Ox,
+    TALOS_150_01_Fu,
+    TALOS_150_02_Fu,
+    TALOS_150_03_Fu,
+    TALOS_150_04_Fu,
+    TALOS_150_05_Fu,
+    TALOS_150_06_Fu,
+    SV_F1_001,
+    SV_F1_002,
+    SV_O1_001,
+    SV_O1_002,
+    PT_O1_001,
+    PT_O1_002,
+    PT_O1_003,
+    PT_F1_001,
+    PT_F1_002,
+    PT_F1_003,
+}
+
+impl From<VCU> for u8{
+    fn from(vcu: VCU) -> u8{
+        match vcu{
+            VCU::VCU_AUX=> 0x00,
+            VCU::VCU_EDU=> 0x01,
+            VCU::VCU_GATEWAY=> 0x02,
+            VCU::VCU_GNC=> 0x03,
+            VCU::VCU_GPC=> 0x04,
+            VCU::VCU_PDU=> 0x05,
+            VCU::VCU_RCS=> 0x06,
+            VCU::VCU_TCS_1=> 0x07,
+            VCU::VCU_TCS_2=> 0x08,
+            VCU::VCU_TCS_3=> 0x09,
+            VCU::VCU_TCS_4=> 0x0A,
+            VCU::VCU_TCS_5=> 0x0B,
+            VCU::VCU_TCS_6=> 0x0C,
+            VCU::VCU_TCS_7=> 0x0D,
+        }
+    }
+}
+
+impl fmt::Display for VCU{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>)->fmt::Result{
+        let vcu_name = match self {
+            VCU::VCU_AUX=> "VCU_AUX",
+            VCU::VCU_EDU=> "VCU_EDU",
+            VCU::VCU_GATEWAY=> "VCU_Gateway",
+            VCU::VCU_GNC=> "VCU_GNC",
+            VCU::VCU_GPC=> "VCU_GPC",
+            VCU::VCU_PDU=> "VCU_PDU",
+            VCU::VCU_RCS=> "VCU_RCS",
+            VCU::VCU_TCS_1=> "VCU_TCS_1",
+            VCU::VCU_TCS_2=> "VCU_TCS_2",
+            VCU::VCU_TCS_3=> "VCU_TCS_3",
+            VCU::VCU_TCS_4=> "VCU_TCS_4",
+            VCU::VCU_TCS_5=> "VCU_TCS_5",
+            VCU::VCU_TCS_6=> "VCU_TCS_6",
+            VCU::VCU_TCS_7=> "VCU_TCS_7",
+        };
+        write!(f, "{}", vcu_name)
+    }
+}
+impl From<Gateway> for u8{
+    fn from(gw: Gateway) -> u8{
+        match gw{
+            Gateway::CCM_A=> 0x00,
+            Gateway::CCM_B=> 0x01,
+            Gateway::Gateway_A=> 0x02,
+            Gateway::Gateway_B=> 0x03,
+        }
+    }
+}
+
+fn main(){
+    let stdin = io::stdin();
+    let line = stdin.lock().lines().next().unwrap().unwrap();
+    let split: Split<&str> = line.split(".");
+    //println!("{}", line);
+    //println!("{:?}", split);
+    for word in split {
+        println!("{}", word);
+    }
+}

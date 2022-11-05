@@ -1,0 +1,46 @@
+#+title: SkyMage Software Design Review
+#+startup: showall indent
+#+options: toc:nil
+
+<2022-01-13 Thu>
+* Application
+- prototype device is relatively small, size of dollars, Ethernet port on back.
+- Ranging application using radio-location to estimate distance between two devices.
+- Based on IEEE 802.15.4.2011 Low-rate WPAN
+- Beacons have unique 64-bit IP, operating on UWB Channel 1
+- Timing information in packet payload
+- App writes out distance in meters to a log file.
+
+* External Interfaces
+- Serial Port for Console Access, through USB cable. configuration of radio and network parameters done through terminal through here
+- Ethernet switch receiving commands from control system.
+- SD Card contains two human readable log files with ranging information and one for system log and diagnostics
+- UWB radio creating mesh network with other beacons
+- Reset Button
+* Software Stack
+^ Application
+^ FreeRTOS
+^ Microcontroller ARM-cortex 4
+
+* Software Arch
+file:/home/ksummers@corp.masten.aero/Pictures/skymage_arch.png
+* Build Systems
+- simple makefile based build, with one top-level makefile
+- single ARM executable output
+- unique binaries per device generated through build with parameters
+- Linux environment/ ARM gcc toolchain
+
+* Hardware
+- STM32 microcontroller
+* RF / Comms
+
+* Risks
+- No watchdog timer, but microcontroller has built in can resolve this
+- No EDAC, cannot detect or correct errors in memory
+- Memory fragmentation is possible, but typically its days or weeks before these occur and this application will only have a few hours run-time, so very low risk
+- WPAN Round-Robin
+
+* Path Forward
+- Finish application Layer Software
+- V&V testing
+- Connect to Xodiac and test ethernet connections, verify readiness for hardware-in-the-loop testing

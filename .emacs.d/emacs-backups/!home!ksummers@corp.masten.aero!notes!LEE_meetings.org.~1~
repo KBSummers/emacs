@@ -1,0 +1,23 @@
+
+** EPS standup needs
+-telemtery to say settings of the seitched
+-RLCL (basically like breakers) if you pull too much current they power off, but you can reset it and turn it back on
+- What are they suppliying us for current information, if an RLCL blows can we tell which current was being pulled through. We can pull again and see what blows?
+- Eliminate those and take out RLCL as a point of failure.
+- If one of them fails, we've lost the spacecraft.
+- If there is a transient failure inRLCL or device its powering such that RLCL gets tripped, we can turn it back on and see.
+- Is th eporbability that an RLCL gets a hard failure a lower priority than us having multiple soft failures, because if it gets powered off were screwed.
+- Tell me more about the RLCL's work
+- We dont know what we can control from FSW really, its conceivable that these things(RLCL) can be turned off like a breaker, is it like an on/off switch.
+1. What can we control?
+2. How do we control it?
+C&DH document is basically a guess.
+Solar panels
+- are there error conditions we need to handle?
+- FDIR -
+- Subsystem documents dection in confluence/ share to sharepoint link
+
+THEY ARE TALKING about a lot of actuators. we can onyl fit in a few dowzen and there are more sensors, we want a sense of how many (spcifically how many different TYPES of Sensors they ahve and what types of things were controlling) how do we control them. most of them i believe are on/off switches controlled through gpio, the sensors, are they booleans are do we need to do a "d-to-A" to sketch that out
+
+^^ Put all of this under the design documents, under tthe VCU section...
+Create a PDU section underneath all of this. Thats a good place to start tracking theose sensors. Figuer out about availability of EDU boards. *These are dev VCU's* THE PDU needs more memory and more storage, those will be on the PM.

@@ -1,0 +1,15 @@
+#+title: Network Provisioning
+#+startup: showall indent
+#+options: toc:nil
+
+* Mission Control Systems
+    - were using YAMCS currently, but we may have issues with support and the yamcs studio constantly crashes
+    - telemetry and commands will all be stored in yamcs database
+
+* Magic
+  We will configure pseudo terminals configured for a different IP, data coming into that will be read by the data relay. Its reading fully constructed SLIP packets, does compression magic to make header a lot smaller. It then sends it via TCP to the ground gateway. All of the traffic si going to go on the data relay, the rpacket server sends UDP packets, and then well have other UDP packets that come to the data relay. WE want ot the relay to get all of that traffic, we might have one data relay or multiple copies. All IP traffic going to spacecraft is taken as SLIP packets, encrypted and send to the ground gateway via TCP.
+
+* NAT
+** On the Ground
+   We will need to take this traffic coming into the masten firewall before it hits rpacket, to determine which is TCP and UDP, which is going to web server, we might do this through iproutes specifying the source ports. TCP traffic is handled, taken to web server or sent to rpacket server. We also have UDP packets coming out of the Masten Firewall that will bypass the Rpkt server.
+** On the Spacecraft

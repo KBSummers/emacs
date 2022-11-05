@@ -1,0 +1,9 @@
+#+TITLE: Ethernet Network Design
+
+
+* How do we know we're ready?
+- We should publish a fully open-source crate(s) of ours in Rust, but we must make sure they are written as near perfect as possible and that they express the full advantage of Rusts' capabilities.
+- Useful examples in this crate may be needed, or at least this crate needs to be globally useful, not project (XL-1) specific.
+- Lets not immediately make this crate publicly published, we should push it to some sort of mailing list or public git repo, where we can gain feedback before making it fully open source and a major point to the public.
+- We may want to create a public Masten Github repo where we can gain this feedback.
+-

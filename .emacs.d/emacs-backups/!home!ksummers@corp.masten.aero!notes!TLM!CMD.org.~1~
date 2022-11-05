@@ -1,0 +1,5 @@
+<2022-02-08 Tue>
+- Commands from ground will not compressed to the UDP.
+- For downlink, we'll be stuffing those radio frames full of data, so we should be able to compress that.  Maybe 25% smaller as a guess.
+- Because we are packing multiple UDP packets into a frame, we can't compress.
+- Large files themselves will be compressed. Before being thrown into packets.

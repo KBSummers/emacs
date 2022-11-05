@@ -1,0 +1,150 @@
+use std::io::{self, BufRead};
+use std::str::Split;
+//#![allow(non_camel_case_types)]
+//#![allow(dead_code)]
+pub struct Address{
+    vcu: Option<VCU>,
+    gw:  Option<Gateway>,
+    gwa: Option<GatewayA>,
+    gwb: Option<GatewayB>,
+    gpc: Option<GPC>,
+
+}
+
+pub enum VCU{
+    VCU_AUX,
+    VCU_EDU,
+    VCU_GATEWAY,
+    VCU_GNC,
+    VCU_GPC,
+    VCU_PDU,
+    VCU_RCS,
+    VCU_TCS_1,
+    VCU_TCS_2,
+    VCU_TCS_3,
+    VCU_TCS_4,
+    VCU_TCS_5,
+    VCU_TCS_6,
+    VCU_TCS_7,
+}
+
+pub enum Gateway{
+    CCM_A,
+    CCM_B,
+    Gateway_A,
+    Gateway_B,
+}
+
+pub enum GatewayA{
+    Wifi_Antenna_1A,
+    Wifi_Antenna_2A,
+    Wifi_Antenna_3A,
+}
+pub enum GatewayB{
+    Wifi_Antenna_1B,
+    Wifi_Antenna_2B,
+    Wifi_Antenna_3B,
+}
+pub enum GPC{
+    CCM_A,
+    CCM_B,
+    GPC_A,
+    GPC_B,
+    GPC_C,
+}
+
+pub enum PCDHU{
+    Lets,
+    MSolo,
+    Nirvss,
+    Heimdall,
+    Samplr,
+    LCiris,
+    MoonRanger,
+}
+
+pub enum VCUAUX{
+    CCM_A,
+    CCM_B,
+}
+
+pub enum VCUEDU{
+    CCM_A,
+    CCM_B,
+    VCU_PM,
+    TALOS_150_01_Ox,
+    TALOS_150_02_Ox,
+    TALOS_150_03_Ox,
+    TALOS_150_04_Ox,
+    TALOS_150_05_Ox,
+    TALOS_150_06_Ox,
+    TALOS_150_01_Fu,
+    TALOS_150_02_Fu,
+    TALOS_150_03_Fu,
+    TALOS_150_04_Fu,
+    TALOS_150_05_Fu,
+    TALOS_150_06_Fu,
+    SV_F1_001,
+    SV_F1_002,
+    SV_O1_001,
+    SV_O1_002,
+    PT_O1_001,
+    PT_O1_002,
+    PT_O1_003,
+    PT_F1_001,
+    PT_F1_002,
+    PT_F1_003,
+}
+
+impl From<VCU> for u8{
+    fn from(vcu: VCU) -> u8{
+        match vcu{
+            VCU::VCU_AUX=> 0x00,
+            VCU::VCU_EDU=> 0x01,
+            VCU::VCU_GATEWAY=> 0x02,
+            VCU::VCU_GNC=> 0x03,
+            VCU::VCU_GPC=> 0x04,
+            VCU::VCU_PDU=> 0x05,
+            VCU::VCU_RCS=> 0x06,
+            VCU::VCU_TCS_1=> 0x07,
+            VCU::VCU_TCS_2=> 0x08,
+            VCU::VCU_TCS_3=> 0x09,
+            VCU::VCU_TCS_4=> 0x0A,
+            VCU::VCU_TCS_5=> 0x0B,
+            VCU::VCU_TCS_6=> 0x0C,
+            VCU::VCU_TCS_7=> 0x0D,
+        }
+    }
+}
+
+impl fmt::Display for VCU{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>)->fmt::Result{
+        let vcu_name = match self {
+            VCU::VCU_AUX=> "VCU_AUX",
+            VCU::VCU_EDU=> "VCU_EDU",
+            VCU::VCU_GATEWAY=> "VCU_Gateway",
+            VCU::VCU_GNC=> "VCU_GNC",
+            VCU::VCU_GPC=> "VCU_GPC",
+            VCU::VCU_PDU=> "VCU_PDU",
+            VCU::VCU_RCS=> "VCU_RCS",
+            VCU::VCU_TCS_1=> "VCU_TCS_1",
+            VCU::VCU_TCS_2=> "VCU_TCS_2",
+            VCU::VCU_TCS_3=> "VCU_TCS_3",
+            VCU::VCU_TCS_4=> "VCU_TCS_4",
+            VCU::VCU_TCS_5=> "VCU_TCS_5",
+            VCU::VCU_TCS_6=> "VCU_TCS_6",
+            VCU::VCU_TCS_7=> "VCU_TCS_7",
+        }
+    }
+}
+
+fn main(){
+    let stdin = io::stdin();
+    let line = stdin.lock().lines().next().unwrap().unwrap();
+    let split: Split<&str> = line.split(".");
+    //println!("{}", line);
+    //println!("{:?}", split);
+    for word in split {
+        println!("{}", word);
+    }
+}

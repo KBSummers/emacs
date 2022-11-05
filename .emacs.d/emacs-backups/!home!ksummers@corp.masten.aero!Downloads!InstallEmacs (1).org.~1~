@@ -1,0 +1,51 @@
+#+title: Installing Emacs Notes
+#+startup: showall indent
+#+options: toc:nil
+
+* Setup
+** Install System Packages
+#+begin_src
+sudo apt install autoconf makeinfo texi2html texinfo libtiff-dev build-essential libgtk-3-dev libtiff5-dev libgif-dev libjpeg-dev libpng-dev libxpm-dev libncurses-dev libmagickwand-dev libcjson-dev libgnutls28-dev libjansson-dev libsystemd-dev
+#+end_src
+** Build and Install Emacs
+#+begin_src
+git clone https://git.savannah.gnu.org/git/emacs.git
+cd emacs
+git checkout emacs-28.0.92
+./autogen.sh
+./configure --with-mailutils --with-x-toolkit=gtk3 --with-imagemagick --with-json
+make
+sudo make install
+#+end_src
+- When checking out a new version, run =make distclean= to get to a clean state and reconfigure and remake
+
+** Install packages for my configuration
+*** Ripgrep
+#+begin_src
+cargo install ripgrep
+#+end_src
+*** Rtags
+#+begin_src
+sudo apt install llvm llvm-dev clang libclang-dev libssl-dev zlib1g-dev pkgconfig
+cd ~/Code
+git clone --recursive https://github.com/Andersbakken/rtags.git
+cd rtags
+cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 .
+make
+sudo make install
+#+end_src
+*** Pdf tools
+#+begin_src
+sudo apt install libpng-dev zlib1g-dev libpoppler-glib-dev libpoppler-private-dev imagemagick
+#+end_src
+- It will give an error that it isn't installed
+- Go to =init.el= and comment out the =:pin manual= line
+  - This just make it so that it needs to manually be updated since it takes a while to update
+*** Cscope
+#+begin_src
+sudo apt-get install cscope
+#+end_src
+*** Vterm
+#+begin_src
+sudo apt-get cmake libtool-bin
+#+end_src

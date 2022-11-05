@@ -1,0 +1,20 @@
+digraph Spacecraft{
+        XL1 -> VCUS -> PCDHU -> HGA -> DVC;
+        VCUS -> VCU_Gateway -> VCU_GPC -> VCU_AUX -> VCU_EDU -> VCU_GNC -> VCU_RCS -> VCU_PDU -> VCU_TCS1 -> VCU_TCS2 -> VCU_TCS3 -> VCU_TCS4 -> VCU_TCS5 -> VCU_TCS6 -> VCU_TCS7;
+        VCU_Gateway -> VCU_SM -> VCU_CCM_A -> VCU_CCM_B -> Gateway_A -> Gateway_B;
+        Gateway_A -> PCDHUInterface -> WifiAntenna1A -> WifiAntenna2A-> WifiAntenna3A -> DataLinkRelay;
+        Gateway_B -> PCDHUInterface -> WifiAntenna1B -> WifiAntenna2B-> WifiAntenna3B -> DataLinkRelay;
+
+
+}
+
+digraph Spacecraft{
+        XL1 -> VCUS;
+        XL1 -> PCDHU;
+        XL1 -> HGA;
+        XL1 -> DVC;
+        VCUS -> VCU_Gateway -> VCU_GPC -> VCU_AUX -> VCU_EDU -> VCU_GNC -> VCU_RCS -> VCU_PDU -> VCU_TCS1 -> VCU_TCS2 -> VCU_TCS3 -> VCU_TCS4 -> VCU_TCS5 -> VCU_TCS6 -> VCU_TCS7;
+        VCU_Gateway -> VCU_SM -> VCU_CCM_A -> VCU_CCM_B -> Gateway_A -> Gateway_B;
+        Gateway_A -> PCDHUInterface -> WifiAntenna1A -> WifiAntenna2A-> WifiAntenna3A -> DataLinkRelay;
+        Gateway_B -> PCDHUInterface -> WifiAntenna1B -> WifiAntenna2B-> WifiAntenna3B -> DataLinkRelay;
+}

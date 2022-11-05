@@ -1,0 +1,65 @@
+// ffi wrapper for c calls such as system level tgkill
+
+extern
+{
+    fn ffi_tgkill(tgid: libc::c_int, tid: libc::c_int)->libc::c_int;// ffi_return;//libc::c_int;
+    fn ffi_get_tid()->libc::c_int;
+
+    fn ffi_spool_up_server_and_read()->libc::c_int;
+    fn udp_server()->libc::c_int;
+    fn enable_cancel()->libc::c_int;
+    fn get_pthread_self()->libc::c_ulong;
+    fn ffi_pthread_kill(pthread: libc::c_ulong)->libc::c_int;
+    fn ffi_getpid()->libc::c_int;
+}
+
+pub fn ffi_tgkill_wrapper(thread_id: libc::c_int)->libc::c_int
+{
+    let ret = unsafe { ffi_tgkill(-1, thread_id) };
+    println!("from c bindings called tgkill. res: ({})", ret);//.return_code, ret.error);
+    ret
+}
+
+pub fn ffi_get_tid_wrapper()->libc::c_int
+{
+    let ret = unsafe { ffi_get_tid() };
+    ret
+}
+
+pub fn ffi_get_server_wrapper()->libc::c_int
+{
+    unsafe { ffi_spool_up_server_and_read() }
+}
+
+pub fn udp_server_wrapper()->libc::c_int
+{
+    unsafe { udp_server() }
+}
+
+pub fn enable_cancel_wrapper()->libc::c_int
+{
+    unsafe { enable_cancel() }
+}
+
+pub fn get_pthread_self_wrapper()->libc::c_ulong
+{
+    unsafe { get_pthread_self() }
+}
+
+pub fn ffi_pthread_kill_wrapper(pthread: u64)->libc::c_int
+{
+    unsafe { ffi_pthread_kill(pthread) }
+}
+
+pub fn ffi_getpid_wrapper()->libc::c_int
+{
+    unsafe { ffi_getpid() }
+}
+
+/*
+#[repr(C)]
+pub struct ffi_return {
+    pub return_code:    libc::c_int,
+    pub error:    libc::c_int,
+}
+*/

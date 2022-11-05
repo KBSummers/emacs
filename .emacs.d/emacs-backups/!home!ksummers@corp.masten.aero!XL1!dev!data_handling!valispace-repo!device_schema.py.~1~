@@ -1,0 +1,15 @@
+import valispace
+import keyring
+import requests
+import json
+import re
+import time
+mastenspace = valispace.API(url='https://valispace.masten.aero',
+              username='ksummers', password=keyring.get_password("valispace", "ksummers"))
+def spit_out():
+    fsw = mastenspace.get_component(id=20427)
+    print(fsw['name'])
+    for c in fsw['children']:
+        subsystem = mastenspace.get_component(id=c)
+        print(subsystem['name'])
+spit_out()

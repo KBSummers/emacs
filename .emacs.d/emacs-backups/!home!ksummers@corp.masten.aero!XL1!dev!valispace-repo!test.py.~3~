@@ -1,0 +1,15 @@
+class node():
+    def __init__(self, name):
+        self.name = name
+
+def main():
+    glist = []
+    f = node("kyle")
+    glist.append(f)
+    print(glist[0].name)
+    call_this()
+def call_this():
+    k = node("todd")
+    glist.append(k)
+    print(glist[1].name)
+main()

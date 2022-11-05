@@ -1,0 +1,64 @@
+#+title: Notebook Example
+#+startup: showall indent
+#+options: toc:nil
+
+* Prerequisites for this notebook
+- Install =matplotlib= for =python3=
+
+* Running source code blocks
+  - I have this source code from the Matplotlib examples[fn:1]:
+    #+begin_src python :python python3 :results output file :file myplot.png
+      import numpy as np
+      import matplotlib.pyplot as plt
+      import sys
+
+      x = np.arange(14)
+      y = np.sin(x / 2)
+
+      plt.step(x, y + 2, label='pre (default)')
+      plt.plot(x, y + 2, 'o--', color='grey', alpha=0.3)
+
+      plt.step(x, y + 1, where='mid', label='mid')
+      plt.plot(x, y + 1, 'o--', color='grey', alpha=0.3)
+
+      plt.step(x, y, where='post', label='post')
+      plt.plot(x, y, 'o--', color='grey', alpha=0.3)
+
+      plt.grid(axis='x', color='0.95')
+      plt.legend(title='Parameter where:')
+      plt.title('plt.step(where=...)')
+      plt.savefig(sys.stdout.buffer)
+    #+end_src
+
+    #+RESULTS:
+    [[file:myplot.png]]
+
+If you put your cursor at the beginning of the babel source window and press C-c
+C-c, you should be prompted to run the code. This should create an image and
+embed the link to that file above this. The file is saved on your drive and this
+remains purely a text file.
+
+Saving the figure properly requires a little orgmode-foo and was found on stack
+exchange[fn:2].
+
+There are a lot of incredible things you can do with org-mode. Here are some of
+my favorite:
+- [[https://www.youtube.com/watch?v=AP4LX8L7MFM][Youtube: Reproducible Research with GNU Emacs and Org-mode]]
+- [[http://archive.indianstatistics.org/tools/orgpapers.pdf][Using Emacs, Org-mode and R for Research Writing in Social Sciences]]
+- [[http://ehneilsen.net/notebook/orgExamples/org-examples.html][Emacs org-mode examples and cookbook]]
+
+* Cool Manual pages:
+- You should be able to click on these links with your mouse and it should open
+  the info page:
+  - [[info:org#TODO Basics][org#TODO Basics]]
+  - [[info:org#Markup for Rich Contents][org#Markup for Rich Contents]]
+  - [[info:org#Working with Source Code][org#Working with Source Code]]
+  - [[info:org#The Very Busy C-c C-c Key][org#The Very Busy C-c C-c Key]]
+
+  - Manual pages that outline the in buffer settings:
+    - [[info:org#Export Settings][org#Export Settings]]
+    - [[info:org#In-buffer Settings][org#In-buffer Settings]]
+
+* Footnotes
+[fn:1] [[https://matplotlib.org/devdocs/gallery/lines_bars_and_markers/step_demo.html#sphx-glr-gallery-lines-bars-and-markers-step-demo-py][Matplotlib Gallery: Step Demo]]
+[fn:2] [[https://emacs.stackexchange.com/a/64667][Emacs Stackexchange: Saving Python matplotlib figures with source-code blocks]]

@@ -1,0 +1,21 @@
+#+title: FSW_Design_Review
+
+* Data Link Relay
+This is a component that lives in the Masten MOC. It's objective is to:
+1. Set up a pseudo-tty as a network device supporting SLIP (Serial Lint Internet Protocol) encapsulation, a long with COBS (Consistent Overhead Byte Stuffing)
+2. Extract and inject SLIP+COBS packets from the pseudo-tty
+3. Perform packet header compression/decompression
+
+All traffic going from ground to the spacecraft will be sent through the data relay in the Masten MOC before reaching it's desired ground station provider (DSN or SSC). The designation of which ground station provider will also be determined within the data link relay.
+* Payload Command and Telemetry from Payload MOC
+Payload MOCS will build their application to use the Rpkt library, which enables them to send and receive data to the Masten MOC. The Rpkt server on our Masten MOC will allow for the reception/transmission of data on our end. This server will send commands to the spacecraft via the data link relay and will in turn receive live telemetry from the data link.
+
+* Web Interface 
+This will send and receive requests from a web client (browser application) that lives on the Payload MOCS. It can either, access payload telemetry information on the spacecraft (transferred through CFDP server on spacecraft), or send requests/receive responses to/from a Payload Telemetry Database (managed through PostgreSQL).
+
+* Telemetry Daemon
+This daemon will periodically contact the spacecraft's CFDP server, download all pending files, then delete them after the download has completed. Each payload will be assigned a user id associated with this daemon so it can only access it's associated files for security purposes.
+* Masten Ground Control Commands and Telemetry
+Yamcs is the primary tool our team will use to send commands and receive telemetry. It allows us to build custom GUI's for each team, configured to suit their C&T needs. It will house utilize an XTCE database to define the C&T exchange definitions, and will send it's telemetry data (essentially just spacecraft telemetry) to it's own database (managed through RocksDB). 
+
+

@@ -1,0 +1,95 @@
+import valispace
+import keyring
+import requests
+from os.path import exists
+
+#mastenspace = valispace.API(url='https://valispace.masten.aero',
+#username='ksummers', password=keyring.get_password("valispace", "ksummers"))
+mm1_id = 12405
+xl1_id = 12406
+payloads_id = 12407
+#print(mm1)
+#comp_list = mastenspace.get_component_list(project_id=74)
+#STRUCTURES ARE ALREADY OBTAINED
+class MM1Node:
+    def __init__(self, node, children):
+        self.logfile = open("data.out", "w")
+        mastenspace = valispace.API(url='https://valispace.masten.aero',
+            username='ksummers', password=keyring.get_password("valispace", "ksummers"))
+        self.node = mastenspace.get_component(id=12405) #12405 = mm1 id
+        self.children = {}
+        for child in self.node["children"]:
+            self.children[child[""]]
+        mm1 = mastenspace.get_all_data('component')
+        count = 0
+        for key in mm1:
+            count +=1
+            print(count)
+            print(mm1[key]["name"])
+    #def initialize(self):
+
+
+class SubsystemNode:
+    def __init__(self, name, tree):
+        self.name = name
+        self.tree = tree
+#d = MM1Node()
+#d.initialize()
+
+# STRUCTURES ARE ALREADY OBTAINED
+
+# grouping
+class TemperatureSensor:
+    def __init__(self, name, dict_tree):
+        #do stuff here
+        self.name = name
+        self.dict_tree = dict_tree
+        x = 5
+#grouping
+
+
+class Node:
+    def __init__(self, name, dict_tree):
+        self.name = name
+        self.dict_tree = dict_tree
+        #see if we can somehow enumerate names to id's somehwere as constants in program
+def initialize():
+    mastenspace = valispace.API(url='https://valispace.masten.aero',
+            username='ksummers', password=keyring.get_password("valispace", "ksummers"))
+    mm1 = call_component(mm1_id, mastenspace) #12405 = mm1 id
+    xl1 = call_component(xl1_id, mastenspace)
+    payloads = call_component(payloads_id, mastenspace)
+        #launch_vehicle =
+        #ground_systems =
+        #ait =
+
+def call_component(comp_id, mastenspace):
+    try:
+        req=mastenspace.get_component(id=comp_id)
+        if req is None:
+            req.raise_for_status()
+    except requests.HTTPError as exception:
+        print("Error accessing component with id: " + comp_id)
+        return
+    return req
+
+initialize()
+
+def get_all_children(root_id):
+    f = open("data.out", "a")
+    comp_list = mastenspace.get("components/?parent="+str(root_id))
+    count = 1
+    for child in comp_list:
+        data = (mastenspace.get_component(id=child["parent"])["name"]
+                + "--->" + child["name"] + " count: " + str(count))
+        print(data)#+ "whole object")
+        f.write(data + "\n")
+        print(child)
+        count += 1
+        for subchild in child["children"]:
+            get_all_children(subchild)
+        #if child["children"] != []:
+            #get_all_children(child["id"])
+    f.close()
+
+#get_all_children(mm1_id)
